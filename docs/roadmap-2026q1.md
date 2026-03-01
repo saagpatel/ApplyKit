@@ -66,6 +66,16 @@
   - Evidence: rollback branch and governance snapshots captured pre-cutover.
   - Evidence: post-cutover stabilization report published in `docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`.
 
+### Operational Continuity Revalidation (2026-02-28)
+- Status: complete
+  - Evidence: full root verification command chain passed.
+  - Evidence: perf foundation and perf enforced checks passed.
+  - Evidence: canonical strict audit passed and baseline no-ignore advisory set stayed aligned (18 active, 0 stale, 0 missing).
+  - Evidence: CI parity check passed.
+  - Evidence: branch protection and rulesets snapshots refreshed.
+  - Durable artifact: `docs/evidence/operational-revalidation-2026-02-28.md`.
+  - Follow-up status: advisory remediation issues remain open and owned (AK-301 [#7](https://github.com/saagar210/ApplyKit/issues/7), AK-302 [#8](https://github.com/saagar210/ApplyKit/issues/8), AK-303 [#9](https://github.com/saagar210/ApplyKit/issues/9)).
+
 ## Status Tracking Fields
 For each weekly checkpoint capture:
 - `status`: not started | in progress | blocked | complete

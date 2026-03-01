@@ -96,6 +96,32 @@ Record for each run:
 - `decision`:
   - go (Phase 4 complete; proceed to Phase 5 prep)
 
+## Operational Follow-up Snapshot (2026-02-28)
+
+- `operator`: codex-session
+- `date_utc`: 2026-02-28T22:20:00Z
+- `git_ref`: 4b7e653567ab9a64b845dfa024f0a8da4948785a
+- `evidence_artifact`:
+  - `docs/evidence/operational-revalidation-2026-02-28.md`
+- `verify_result`:
+  - pass
+- `perf_result`:
+  - foundation: pass
+  - enforced: pass
+- `security_audit_result`:
+  - canonical strict audit: pass
+  - baseline no-ignore scan: expected fail (informational advisories)
+  - advisory drift check: pass (0 stale, 0 missing IDs)
+- `parity_check_result`:
+  - pass
+- `governance_snapshot`:
+  - branch protection: approvals=1, conversation resolution required=true
+  - required checks: quality, verify, perf-enforced, perf-foundation, dependency_and_misconfig, sast, secrets, enforce
+  - active ruleset: `main-operational-readiness` (`id=13367455`)
+  - open advisory issues: AK-301 (`#7`), AK-302 (`#8`), AK-303 (`#9`)
+- `decision`:
+  - go (operational readiness posture unchanged; residual advisory risk remains tracked in AK-301/302/303)
+
 ## Golden Path
 1. `pnpm -C ui install --frozen-lockfile`
 2. `bash ./.codex/scripts/run_verify_commands.sh`
