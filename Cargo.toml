@@ -30,5 +30,5 @@ walkdir = "2.5"
 unicode-normalization = "0.1"
 tempfile = "3.14"
 indexmap = { version = "2.7", features = ["serde"] }
-zip = { version = "2.2", default-features = false, features = ["deflate"] }
+zip = { version = "8.4", default-features = false, features = ["deflate"] }
 proptest = "1.6"
