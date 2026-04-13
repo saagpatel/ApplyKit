@@ -65,12 +65,15 @@ export default function App() {
     }, 3000);
   };
 
-  const loadJobs = async () => {
+  const loadJobs = async (): Promise<JobSummary[]> => {
     try {
       const response = await invokeSafe<{ jobs: JobSummary[] }>("list_jobs_cmd", {});
-      setJobs(response.jobs ?? []);
+      const nextJobs = response.jobs ?? [];
+      setJobs(nextJobs);
+      return nextJobs;
     } catch {
       setJobs([]);
+      return [];
     }
   };
 
@@ -110,6 +113,31 @@ export default function App() {
     }
   };
 
+  const copyText = async (text: string, successMessage: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      pushToast(successMessage, "success");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Copy failed";
+      pushToast(message, "error");
+    }
+  };
+
+  const runExport = async (
+    command: "export_markdown_cmd" | "export_docx_cmd" | "export_pdf_cmd",
+    packetDir: string
+  ) => {
+    try {
+      const response = await invokeSafe<ExportResponse>(command, {
+        input: { packetDir }
+      });
+      pushToast(response.message, response.ok ? "success" : "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Export failed";
+      pushToast(message, "error");
+    }
+  };
+
   useEffect(() => {
     void loadJobs();
     void loadInsights();
@@ -134,8 +162,15 @@ export default function App() {
         view === "job-review"
       ) {
         event.preventDefault();
-        void navigator.clipboard.writeText(selectedDetail?.packetDir ?? "");
-        pushToast("Copied packet path", "success");
+        void (async () => {
+          try {
+            await navigator.clipboard.writeText(selectedDetail?.packetDir ?? "");
+            pushToast("Copied packet path", "success");
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Copy failed";
+            pushToast(message, "error");
+          }
+        })();
       }
     };
 
@@ -208,10 +243,13 @@ export default function App() {
                 }
               });
               setSelectedDetail(response.packetDetail);
-              setSelectedJobId(undefined);
+              const refreshedJobs = await loadJobs();
+              const generatedJob = refreshedJobs.find(
+                (job) => job.outputDir === response.packetDetail.packetDir
+              );
+              setSelectedJobId(generatedJob?.id);
               setView("job-review");
               pushToast("Packet generated", "success");
-              await loadJobs();
               await loadInsights();
             } catch (err) {
               const message = err instanceof Error ? err.message : "Generation failed";
@@ -230,8 +268,7 @@ export default function App() {
           detail={selectedDetail}
           approvedOnly={!settings.allowUnapproved}
           onCopy={async (text) => {
-            await navigator.clipboard.writeText(text);
-            pushToast("Copied", "info");
+            await copyText(text, "Copied");
           }}
           onOpenFolder={async (path) => {
             try {
@@ -241,24 +278,9 @@ export default function App() {
               pushToast(message, "error");
             }
           }}
-          onExportMarkdown={async (packetDir) => {
-            const response = await invokeSafe<ExportResponse>("export_markdown_cmd", {
-              input: { packetDir }
-            });
-            pushToast(response.message, response.ok ? "success" : "error");
-          }}
-          onExportDocx={async (packetDir) => {
-            const response = await invokeSafe<ExportResponse>("export_docx_cmd", {
-              input: { packetDir }
-            });
-            pushToast(response.message, response.ok ? "success" : "error");
-          }}
-          onExportPdf={async (packetDir) => {
-            const response = await invokeSafe<ExportResponse>("export_pdf_cmd", {
-              input: { packetDir }
-            });
-            pushToast(response.message, response.ok ? "success" : "error");
-          }}
+          onExportMarkdown={async (packetDir) => runExport("export_markdown_cmd", packetDir)}
+          onExportDocx={async (packetDir) => runExport("export_docx_cmd", packetDir)}
+          onExportPdf={async (packetDir) => runExport("export_pdf_cmd", packetDir)}
           onUpdateTracker={async (status, nextAction, notes) => {
             if (!selectedDetail) {
               return;

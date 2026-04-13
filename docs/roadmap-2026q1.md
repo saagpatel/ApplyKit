@@ -1,5 +1,7 @@
 # ApplyKit Production Roadmap Tracker (2026-02-23 to 2026-04-19)
 
+> Historical planning and evidence tracker. Entries labeled as "Prepared Early" and any milestones dated after the current validation date are planning artifacts until their target dates and should not be treated as present-tense repo status on their own.
+
 ## Phase 2 (Weeks 1-2): Gate Completion + CI Parity
 - Week 1 target: enforce coverage + diff coverage and remove waivers.
 - Week 2 target: re-enable perf workflows with delegated real commands and artifact capture.

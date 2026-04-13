@@ -455,5 +455,16 @@ pub fn read_packet_detail_by_job_id(
         .output_dir
         .map(PathBuf::from)
         .ok_or_else(|| anyhow::anyhow!("job has no output_dir: {job_id}"))?;
-    read_packet_detail(&packet_dir)
+    let mut detail = read_packet_detail(&packet_dir)?;
+    detail.tracker_row.company = job.company;
+    detail.tracker_row.role = job.role;
+    detail.tracker_row.source = job.source;
+    detail.tracker_row.track = job.track.unwrap_or(detail.tracker_row.track);
+    if let Some(fit_total) = job.fit_total.and_then(|value| u8::try_from(value).ok()) {
+        detail.tracker_row.fit_total = fit_total;
+    }
+    detail.tracker_row.status = job.status;
+    detail.tracker_row.next_action = job.next_action.unwrap_or_default();
+    detail.tracker_row.packet_dir = packet_dir.display().to_string();
+    Ok(detail)
 }

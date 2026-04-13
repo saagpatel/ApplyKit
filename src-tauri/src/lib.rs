@@ -1071,6 +1071,39 @@ allowed_tasks = []
         std::fs::write(config_dir.join("applykit.toml"), content).expect("write config");
     }
 
+    fn copy_dir_recursive(src: &Path, dst: &Path) {
+        std::fs::create_dir_all(dst).expect("create dst dir");
+        for entry in std::fs::read_dir(src).expect("read dir") {
+            let entry = entry.expect("entry");
+            let ty = entry.file_type().expect("file type");
+            let target = dst.join(entry.file_name());
+            if ty.is_dir() {
+                copy_dir_recursive(&entry.path(), &target);
+            } else {
+                if let Some(parent) = target.parent() {
+                    std::fs::create_dir_all(parent).expect("create parent");
+                }
+                std::fs::copy(entry.path(), target).expect("copy file");
+            }
+        }
+    }
+
+    fn seed_runtime_assets(repo_root: &Path) {
+        let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().expect("repo root");
+        copy_dir_recursive(&source_root.join("data"), &repo_root.join("data"));
+        copy_dir_recursive(&source_root.join("templates"), &repo_root.join("templates"));
+    }
+
+    fn generated_job_id(repo_root: &Path) -> String {
+        let list = list_jobs_cmd(None).expect("list jobs");
+        let job = list.jobs.first().expect("job row");
+        assert!(
+            Path::new(job.output_dir.as_deref().expect("output dir")).starts_with(repo_root),
+            "job output dir should stay scoped"
+        );
+        job.id.clone()
+    }
+
     #[test]
     fn sanitize_export_file_name_rejects_path_segments() {
         let err = sanitize_export_file_name(
@@ -1180,5 +1213,92 @@ allowed_tasks = []
         })
         .expect_err("non-loopback URL should fail");
         assert!(err.contains("invalid llmBaseUrl"));
+    }
+
+    #[test]
+    fn native_commands_generate_and_load_packet_detail() {
+        let repo = tempfile::tempdir().expect("repo");
+        let base = repo.path().join("output_base");
+        std::fs::create_dir_all(&base).expect("create base");
+        seed_runtime_assets(repo.path());
+        write_test_config(repo.path(), &base);
+
+        let _cwd = CwdGuard::set_to(repo.path());
+        let response = generate_packet_cmd(GeneratePacketInput {
+            company: "Acme".to_string(),
+            role: "Senior Support Engineer".to_string(),
+            source: "LinkedIn".to_string(),
+            baseline: "1pg".to_string(),
+            jd_text: "Support engineer role with Okta, SSO, and incident response".to_string(),
+            outdir: None,
+            run_date: Some("2026-03-14".to_string()),
+            track_override: None,
+            allow_unapproved: Some(false),
+        })
+        .expect("generate packet");
+
+        assert!(response.truth_passed);
+        assert!(Path::new(&response.packet_dir).exists());
+
+        let banks = get_banks_preview_cmd().expect("banks preview");
+        assert!(banks.bullet_count > 0);
+        let templates = get_templates_preview_cmd().expect("templates preview");
+        assert!(templates.resume_1pg_base.contains("<!--SECTION:EXPERIENCE-->"));
+
+        let job_id = generated_job_id(repo.path());
+        let detail = get_packet_detail_cmd(PacketDetailInput {
+            job_id: Some(job_id),
+            packet_dir: None,
+            outdir: None,
+        })
+        .expect("packet detail");
+
+        assert_eq!(detail.packet_dir, response.packet_dir);
+        assert_eq!(detail.tracker_row.status, "new");
+        assert!(!detail.resume_1pg.is_empty());
+    }
+
+    #[test]
+    fn native_commands_reflect_tracker_updates_in_packet_detail() {
+        let repo = tempfile::tempdir().expect("repo");
+        let base = repo.path().join("output_base");
+        std::fs::create_dir_all(&base).expect("create base");
+        seed_runtime_assets(repo.path());
+        write_test_config(repo.path(), &base);
+
+        let _cwd = CwdGuard::set_to(repo.path());
+        let generated = generate_packet_cmd(GeneratePacketInput {
+            company: "Acme".to_string(),
+            role: "Senior Support Engineer".to_string(),
+            source: "LinkedIn".to_string(),
+            baseline: "1pg".to_string(),
+            jd_text: "Support engineer role with Okta, SSO, and incident response".to_string(),
+            outdir: None,
+            run_date: Some("2026-03-14".to_string()),
+            track_override: None,
+            allow_unapproved: Some(false),
+        })
+        .expect("generate packet");
+
+        let job_id = generated_job_id(repo.path());
+        update_job_status_cmd(UpdateJobStatusInput {
+            id: job_id.clone(),
+            status: "reply".to_string(),
+            next_action: Some("send follow-up".to_string()),
+            notes: Some("focus on incident examples".to_string()),
+            outdir: None,
+        })
+        .expect("update tracker");
+
+        let detail = get_packet_detail_cmd(PacketDetailInput {
+            job_id: Some(job_id),
+            packet_dir: None,
+            outdir: None,
+        })
+        .expect("packet detail after update");
+
+        assert_eq!(detail.packet_dir, generated.packet_dir);
+        assert_eq!(detail.tracker_row.status, "reply");
+        assert_eq!(detail.tracker_row.next_action, "send follow-up");
     }
 }

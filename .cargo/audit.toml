@@ -36,6 +36,12 @@ ignore = [
   "RUSTSEC-2025-0081",
   "RUSTSEC-2025-0098",
   "RUSTSEC-2025-0100",
+  # rand advisory remains transitive through reqwest/proptest and the current
+  # tauri-utils/wry stack after latest compatible upgrades.
+  # Owner: applykit-platform
+  # Target removal milestone: 2026-04-30
+  # Mitigation issue: AK-305
+  "RUSTSEC-2026-0097",
   # glib unsound warning is in GTK3 transitive graph and currently non-exploited
   # in this codebase.
   # Owner: applykit-platform

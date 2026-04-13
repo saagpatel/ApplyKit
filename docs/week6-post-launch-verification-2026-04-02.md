@@ -1,5 +1,7 @@
 # Week 6 Post-Launch Verification (Prepared Early)
 
+> Prepared-early verification artifact. This file captures the intended T+24 closeout shape and evidence references; it should not be read as present-tense proof before the April 2, 2026 target date.
+
 Prepared on **2026-02-22** for T+24 verification target (**2026-04-02**).
 
 ## Checklist Outcome

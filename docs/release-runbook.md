@@ -137,6 +137,23 @@ Record for each run:
 - `decision`:
   - go (hardening cycle complete; residual transitive Rust advisories remain tracked and time-bound)
 
+## Local RC Validation Snapshot (2026-03-14)
+
+- `operator`: codex-session
+- `date_utc`: 2026-03-14
+- `evidence_artifact`:
+  - `docs/evidence/local-rc-validation-2026-03-14.md`
+- `verify_result`:
+  - pass (`bash ./.codex/scripts/run_verify_commands.sh`)
+- `desktop_launch_result`:
+  - pass (`cargo tauri dev`)
+- `package_artifacts`:
+  - `target/debug/bundle/macos/ApplyKit.app`
+  - `target/release/bundle/macos/ApplyKit.app`
+  - `target/release/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg`
+- `decision`:
+  - go for local release-candidate use; Apple signing/notarization remains external release-environment follow-up
+
 ## Final Closure Snapshot (2026-03-01)
 
 - `operator`: codex-session

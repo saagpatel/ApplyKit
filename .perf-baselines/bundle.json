@@ -1,9 +1,10 @@
 {
   "source": "vite",
-  "totalBytes": 281447,
+  "totalBytes": 296234,
   "assets": {
-    "index-CvBZXrOL.css": 5109,
-    "index-ExTCOQ_h.js": 276338
+    "index.html": 393,
+    "assets/index-7a_IbXGn.js": 285293,
+    "assets/index-Qw6kqngC.css": 10548
   },
-  "capturedAt": "2026-02-22T10:34:14.194Z"
+  "capturedAt": "2026-04-12T08:37:30.969Z"
 }
