@@ -27,3 +27,51 @@ Model target: GPT-5.3-Codex High Reasoning
 2) UI scaffolding + markdown preview
 3) Diff viewer + bullet picker
 4) LLM adapters + validation
+
+<!-- portfolio-context:start -->
+# Portfolio Context
+
+## What This Project Is
+
+deterministic local-first application packet generation
+
+## Current State
+
+Portfolio truth currently marks this project as `active` with `boilerplate` context. Phase 104 recovered minimum-viable context so future sessions can resume without rediscovery.
+
+## Stack
+
+| Layer | Technology |
+|-------|------------|
+| Language | Rust 2021 |
+| Desktop shell | Tauri 2 |
+| UI | React + TypeScript |
+| LLM | Ollama / LM Studio (local) via reqwest |
+| Core crates | applykit_core, applykit_llm, applykit_export, applykit_cli |
+| Persistence | SQLite via rusqlite |
+
+## How To Run
+
+```bash
+# CLI: generate an application packet
+cargo run -p applykit_cli -- generate \
+  --company "Acme" \
+  --role "Senior Engineer" \
+  --source "LinkedIn" \
+  --baseline 1pg \
+  --jd path/to/job_description.txt \
+  --outdir ~/applykit_packets
+
+# Desktop app
+pnpm tauri dev
+```
+
+## Known Risks
+
+- This repo only has minimum-viable recovery context today; deeper handoff details may still live in the README and supporting docs.
+
+## Next Recommended Move
+
+Use this context plus the README and supporting docs to resume the next active task, then promote the repo beyond minimum-viable by capturing a dedicated handoff, roadmap, or discovery artifact.
+
+<!-- portfolio-context:end -->
