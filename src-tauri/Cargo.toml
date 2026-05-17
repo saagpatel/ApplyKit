@@ -16,7 +16,7 @@ anyhow.workspace = true
 chrono.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tauri = { version = "2.9", features = [] }
+tauri = { version = "2.11", features = [] }
 applykit_core = { path = "../crates/applykit_core" }
 applykit_export = { path = "../crates/applykit_export" }
 
