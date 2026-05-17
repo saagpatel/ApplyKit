@@ -1,0 +1,25 @@
+# Source: .github/workflows/ci.yml
+pnpm install --frozen-lockfile
+node scripts/ci/check-ci-parity.mjs
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test
+cargo audit -D warnings
+pnpm -C ui audit --audit-level high
+pnpm -C ui lint
+pnpm -C ui test
+pnpm -C ui test:e2e:a11y
+./.codex/scripts/run_coverage.sh
+node ./.codex/scripts/check_diff_coverage.mjs
+./.codex/scripts/docs_check.sh
+node ./.codex/scripts/check_gate_waivers.mjs
+pnpm -C ui build
+node scripts/perf/bundle-report.mjs
+node scripts/perf/compare-metric.mjs .perf-baselines/bundle.json .perf-results/bundle.json totalBytes 0.08
+node scripts/perf/measure-build-time.mjs pnpm -C ui build
+node scripts/perf/compare-metric.mjs .perf-baselines/build-time.json .perf-results/build-time.json buildMs 0.15 3500
+bash scripts/perf/check-assets.sh
+MEMORY_MAX_DELTA_MB=5 node --expose-gc scripts/perf/memory-smoke.mjs
+node scripts/perf/summarize.mjs
+cargo tauri build --debug --bundles app
+./scripts/verify_hygiene.sh
