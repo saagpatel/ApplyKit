@@ -2,6 +2,9 @@
   "name": "applykit-workspace",
   "private": true,
   "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "preview": "pnpm -C ui exec vite preview --host 127.0.0.1 --port 4173"
+  },
   "pnpm": {
     "overrides": {
       "picomatch@2.3.1": "2.3.2",
