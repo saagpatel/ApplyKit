@@ -11,6 +11,7 @@ ApplyKit generates deterministic, truth-gated application packets from job descr
 - **Truth Gate** — generated claims come only from approved local templates and skill banks
 - **Deterministic output** — same input + same config = same packet every time
 - **Full application packet** — tailored resume(s), cover letter, fit score, tailor plan, diff, and tracker CSV
+- **Export formats** — DOCX and PDF export of each generated packet
 - **Local LLM** — Ollama, LM Studio, or any llama.cpp-compatible provider
 - **CLI + desktop** — `applykit generate` CLI for scripting; Tauri desktop UI for interactive use
 - **Modular crate design** — core, LLM adapters, export, and CLI as separate crates
@@ -19,6 +20,7 @@ ApplyKit generates deterministic, truth-gated application packets from job descr
 
 ### Prerequisites
 - Rust stable toolchain
+- Tauri CLI (`cargo install tauri-cli --version "^2.0"`)
 - Node.js 22+ and pnpm
 - [Ollama](https://ollama.com) running locally
 
@@ -41,7 +43,7 @@ cargo run -p applykit_cli -- generate \
   --outdir ~/applykit_packets
 
 # Desktop app
-pnpm tauri dev
+cargo tauri dev
 ```
 
 ## Tech Stack
