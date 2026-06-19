@@ -36,7 +36,7 @@ deterministic local-first application packet generation
 
 ## Current State
 
-Portfolio truth currently marks this project as `active` with `boilerplate` context. Phase 104 recovered minimum-viable context so future sessions can resume without rediscovery.
+Current portfolio truth should be checked in `/Users/d/Projects/GithubRepoAuditor/output/portfolio-truth-latest.json`; recent runs mark this project as `active-product`. This file is only a minimum-viable repo guide, so use the README and release docs before expanding scope.
 
 ## Stack
 
