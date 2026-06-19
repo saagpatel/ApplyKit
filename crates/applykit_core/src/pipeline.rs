@@ -31,7 +31,7 @@ pub type GenerateResult = anyhow::Result<GenerateResultData>;
 fn hash_jd(jd_text: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(jd_text.as_bytes());
-    format!("{:x}", hasher.finalize())
+    hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 fn output_date(input: Option<NaiveDate>) -> NaiveDate {
