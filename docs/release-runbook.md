@@ -21,6 +21,14 @@ Record for each run:
 - `security_audit_result`: pass/fail + notes
 - `decision`: go/no-go
 
+## Current vs Historical Use
+
+This runbook owns the current release ceremony and Golden Path below. The dated
+snapshot sections are evidence history from prior readiness passes; use them for
+audit context, not as proof that the current checkout is release-ready. For local
+release-candidate smoke, prefer `docs/local-rc-smoke-runbook.md` and rerun the
+Golden Path commands in this file.
+
 ## Week 3 Evidence Snapshot (Executed Early)
 
 - `operator`: codex-session
