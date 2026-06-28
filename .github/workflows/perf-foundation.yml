@@ -1,4 +1,5 @@
 name: perf-foundation
+# parity guard: bash ./.codex/scripts/run_perf_foundation.sh
 
 on:
   pull_request:

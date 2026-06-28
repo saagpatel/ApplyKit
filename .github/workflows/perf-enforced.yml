@@ -1,4 +1,5 @@
 name: perf-enforced
+# parity guard: bash ./.codex/scripts/run_perf_enforced.sh
 
 on:
   pull_request:
