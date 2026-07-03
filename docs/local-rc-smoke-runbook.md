@@ -9,7 +9,9 @@ Use this runbook when validating ApplyKit on a local machine before calling the 
 - `pnpm -C ui build`
 
 ## Launch
-- `cargo tauri dev`
+- `./script/build_and_run.sh --verify`
+- `./script/build_and_run.sh`
+- Alternative dev loop: `cargo tauri dev`
 - Fallback for low-disk environments: `./scripts/dev_lean.sh`
 
 ## Core smoke flow
@@ -26,6 +28,7 @@ Use this runbook when validating ApplyKit on a local machine before calling the 
 - No generate/review/export/tracker blocker.
 - No unhandled copy/export/settings errors in the UI.
 - `bash ./.codex/scripts/run_verify_commands.sh` passes.
+- `./script/build_and_run.sh --verify` launches the debug app process.
 - `cargo tauri build --debug --bundles app` passes.
 
 ## Notes
