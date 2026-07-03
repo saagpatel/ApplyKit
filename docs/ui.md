@@ -38,6 +38,14 @@ Tabs:
 - Export: open folder, export deterministic PDF
 - Tracker: status + next action + notes
 
+Packet preview:
+- The preview pane renders generated packet artifacts from the selected job:
+  `FitScore.md`, `TailorPlan.md`, tailored resume Markdown, `Diff.md`, and
+  outbound message drafts.
+- Artifact tabs keep the generated files inspectable without changing packet
+  contents; the UI remains render/orchestration only.
+- Hidden packet metadata comments are not displayed in Markdown previews.
+
 ### Banks Editor
 - BulletBank: list + tags + claim level + approve toggle
 - SkillsBank: skill + level + approve toggle
