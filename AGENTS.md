@@ -52,6 +52,11 @@ Portfolio truth currently marks this project as `active` with `boilerplate` cont
 ## How To Run
 
 ```bash
+pnpm -C . install --frozen-lockfile
+
+mkdir -p path/to
+printf '%s\n' 'Acme is hiring a Senior Engineer to build reliable Rust and TypeScript tooling, own local-first workflows, improve developer experience, and ship deterministic automation for small teams.' > path/to/job_description.txt
+
 # CLI: generate an application packet
 cargo run -p applykit_cli -- generate \
   --company "Acme" \
@@ -61,8 +66,8 @@ cargo run -p applykit_cli -- generate \
   --jd path/to/job_description.txt \
   --outdir ~/applykit_packets
 
-# Desktop app
-pnpm tauri dev
+# Desktop app build
+cargo tauri build
 ```
 
 ## Known Risks
