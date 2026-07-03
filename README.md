@@ -20,17 +20,24 @@ ApplyKit generates deterministic, truth-gated application packets from job descr
 ### Prerequisites
 - Rust stable toolchain
 - Node.js 22+ and pnpm
-- [Ollama](https://ollama.com) running locally
+- Tauri CLI for desktop builds:
+  ```bash
+  cargo install tauri-cli --version "^2.0" --locked
+  ```
+- [Ollama](https://ollama.com) for local LLM adapter workflows. The deterministic CLI quick start below does not require Ollama.
 
 ### Installation
 ```bash
 git clone https://github.com/saagpatel/ApplyKit
 cd ApplyKit
-pnpm -C ui install
+pnpm -C . install --frozen-lockfile
 ```
 
 ### Usage
 ```bash
+mkdir -p path/to
+printf '%s\n' 'Acme is hiring a Senior Engineer to build reliable Rust and TypeScript tooling, own local-first workflows, improve developer experience, and ship deterministic automation for small teams.' > path/to/job_description.txt
+
 # CLI: generate an application packet
 cargo run -p applykit_cli -- generate \
   --company "Acme" \
@@ -40,8 +47,8 @@ cargo run -p applykit_cli -- generate \
   --jd path/to/job_description.txt \
   --outdir ~/applykit_packets
 
-# Desktop app
-pnpm tauri dev
+# Desktop app build
+cargo tauri build
 ```
 
 ## Tech Stack
