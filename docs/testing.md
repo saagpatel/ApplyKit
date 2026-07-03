@@ -9,6 +9,9 @@ fixtures/jd_*.txt + expected snapshots (normalized)
 - Unit: extraction, classification, scoring, truth validation
 - Snapshot: full packet outputs (`JD.txt`, `Extracted.json`, `FitScore.md`, `TailorPlan.md`, resumes/messages, `TrackerRow.csv`, `Diff.md`)
 - UI smoke: generate + preview + open folder
+- Tauri/UI contract: native packet detail responses serialize to the camelCase
+  keys consumed by the packet preview (`packetDetail`, `resume1pg`,
+  `hiringManager`, `coverShort`)
 - Property-based: JD normalization/extraction determinism and parser robustness
 - Export determinism: DOCX/PDF deterministic outputs for identical packet input
 

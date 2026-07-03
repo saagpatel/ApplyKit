@@ -85,6 +85,19 @@ describe("PacketPreview", () => {
     expect(screen.getByText("Diff Viewer")).toBeInTheDocument();
   });
 
+  it("renders the serialized native packet detail contract", () => {
+    const payload = JSON.parse(JSON.stringify(detail())) as PacketDetail;
+
+    render(<PacketPreview detail={payload} />);
+
+    const artifactTabs = screen.getByRole("tablist", { name: "Packet artifacts" });
+    fireEvent.click(within(artifactTabs).getByRole("tab", { name: "Manager" }));
+
+    expect(screen.getByText("HiringManagerMessage.md")).toBeInTheDocument();
+    expect(screen.getByText("Hiring manager message")).toBeInTheDocument();
+    expect(screen.getByText("deterministic")).toBeInTheDocument();
+  });
+
   it("renders an empty state without a packet", () => {
     render(<PacketPreview />);
 
