@@ -40,7 +40,7 @@ jobs:
 
       - name: Setup Node
         if: steps.schedule.outputs.run_cycle == 'true' || github.event_name == 'workflow_dispatch'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
