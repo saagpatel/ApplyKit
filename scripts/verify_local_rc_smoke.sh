@@ -48,6 +48,13 @@ done
 
 cd "$repo_root"
 
+dirty_status="$(git status --porcelain --untracked-files=normal)"
+if [[ -n "$dirty_status" ]]; then
+  echo "error: local RC smoke requires a clean git worktree before writing evidence" >&2
+  echo "$dirty_status" >&2
+  exit 1
+fi
+
 run_id="$(date -u +%Y%m%dT%H%M%SZ)"
 tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/applykit-rc-smoke.XXXXXX")"
 receipt_path="${receipt_path:-${TMPDIR:-/tmp}/applykit-local-rc-smoke-${run_id}.json}"
