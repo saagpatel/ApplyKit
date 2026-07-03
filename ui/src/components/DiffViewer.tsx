@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 interface Props {
   diff: string;
+  framed?: boolean;
 }
 
 type Mode = "inline" | "side";
@@ -24,12 +25,12 @@ function parseDiff(diff: string) {
     });
 }
 
-export function DiffViewer({ diff }: Props) {
+export function DiffViewer({ diff, framed = true }: Props) {
   const [mode, setMode] = useState<Mode>("inline");
   const parsed = useMemo(() => parseDiff(diff), [diff]);
 
-  return (
-    <section className="card stack-sm">
+  const content = (
+    <>
       <div className="row between">
         <h3>Diff Viewer</h3>
         <div className="row">
@@ -79,6 +80,8 @@ export function DiffViewer({ diff }: Props) {
           </div>
         </div>
       )}
-    </section>
+    </>
   );
+
+  return framed ? <section className="card stack-sm">{content}</section> : <div className="stack-sm">{content}</div>;
 }
