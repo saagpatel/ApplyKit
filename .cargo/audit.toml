@@ -48,4 +48,12 @@ ignore = [
   # Target removal milestone: 2026-03-31
   # Mitigation issue: AK-301
   "RUSTSEC-2024-0429",
+  # quick-xml is transitive through plist -> tauri. As of 2026-07-03,
+  # plist 1.9.0 constrains quick-xml to ^0.39.2, so the RustSec-fixed
+  # quick-xml >=0.41.0 cannot resolve until plist/tauri widens upstream.
+  # Owner: applykit-platform
+  # Target removal milestone: 2026-08-31
+  # Mitigation issue: AK-306
+  "RUSTSEC-2026-0194",
+  "RUSTSEC-2026-0195",
 ]
