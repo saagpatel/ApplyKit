@@ -1259,6 +1259,87 @@ allowed_tasks = []
     }
 
     #[test]
+    fn native_packet_detail_serializes_preview_contract() {
+        let repo = tempfile::tempdir().expect("repo");
+        let base = repo.path().join("output_base");
+        std::fs::create_dir_all(&base).expect("create base");
+        seed_runtime_assets(repo.path());
+        write_test_config(repo.path(), &base);
+
+        let _cwd = CwdGuard::set_to(repo.path());
+        let response = generate_packet_cmd(GeneratePacketInput {
+            company: "Acme".to_string(),
+            role: "Senior Support Engineer".to_string(),
+            source: "LinkedIn".to_string(),
+            baseline: "1pg".to_string(),
+            jd_text: "Support engineer role with Okta, SSO, and incident response".to_string(),
+            outdir: None,
+            run_date: Some("2026-03-14".to_string()),
+            track_override: None,
+            allow_unapproved: Some(false),
+        })
+        .expect("generate packet");
+
+        let generated_payload = serde_json::to_value(&response).expect("serialize response");
+        assert!(generated_payload.get("packetDetail").is_some());
+        assert!(generated_payload.get("packet_detail").is_none());
+
+        let job_id = generated_job_id(repo.path());
+        let detail = get_packet_detail_cmd(PacketDetailInput {
+            job_id: Some(job_id),
+            packet_dir: None,
+            outdir: None,
+        })
+        .expect("packet detail");
+        let payload = serde_json::to_value(&detail).expect("serialize detail");
+
+        for key in [
+            "packetDir",
+            "extractionSource",
+            "extractionDiagnostics",
+            "fitBreakdown",
+            "tailorPlan",
+            "messages",
+            "resume1pg",
+            "diff",
+            "trackerRow",
+            "truthReport",
+        ] {
+            assert!(payload.get(key).is_some(), "missing preview key {key}");
+        }
+
+        for key in [
+            "packet_dir",
+            "extraction_source",
+            "fit_breakdown",
+            "tailor_plan",
+            "resume_1pg",
+            "tracker_row",
+            "truth_report",
+        ] {
+            assert!(payload.get(key).is_none(), "serialized unexpected snake_case key {key}");
+        }
+
+        let messages = payload.get("messages").expect("messages").as_object().expect("object");
+        assert!(messages.get("recruiter").is_some());
+        assert!(messages.get("hiringManager").is_some());
+        assert!(messages.get("coverShort").is_some());
+        assert!(messages.get("hiring_manager").is_none());
+        assert!(messages.get("cover_short").is_none());
+
+        let fit = payload.get("fitBreakdown").expect("fit breakdown").as_object().expect("object");
+        assert!(fit.get("roleMatch").is_some());
+        assert!(fit.get("stackMatch").is_some());
+        assert!(fit.get("whyMatch").is_some());
+        assert!(fit.get("role_match").is_none());
+
+        let plan = payload.get("tailorPlan").expect("tailor plan").as_object().expect("object");
+        assert!(plan.get("maxResumeEdits").is_some());
+        assert!(plan.get("maxBulletSwaps").is_some());
+        assert!(plan.get("max_resume_edits").is_none());
+    }
+
+    #[test]
     fn native_commands_reflect_tracker_updates_in_packet_detail() {
         let repo = tempfile::tempdir().expect("repo");
         let base = repo.path().join("output_base");
