@@ -21,6 +21,9 @@ Record for each run:
 - `security_audit_result`: pass/fail + notes
 - `decision`: go/no-go
 
+Compact local package receipt:
+- `./scripts/release/verify_macos_package_receipt.sh --receipt /tmp/applykit-macos-package.json`
+
 ## Week 3 Evidence Snapshot (Executed Early)
 
 - `operator`: codex-session
@@ -176,7 +179,7 @@ Record for each run:
 1. `pnpm -C ui install --frozen-lockfile`
 2. `bash ./.codex/scripts/run_verify_commands.sh`
 3. `bash ./.codex/scripts/run_perf_enforced.sh`
-4. `cargo tauri build --debug`
+4. `./scripts/release/verify_macos_package_receipt.sh --receipt /tmp/applykit-macos-package.json`
 5. Validate export outputs for Markdown, DOCX, and PDF from a generated packet.
 6. Complete launch and rollback checklists before any production cutover.
 
