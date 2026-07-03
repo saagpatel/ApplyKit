@@ -230,12 +230,12 @@ describe("App workflow integration", () => {
     expect(screen.getByRole("heading", { name: "Job Review" })).toBeInTheDocument();
   });
 
-  it("supports message copy plus markdown and docx exports from job review", async () => {
+  it("supports message copy, open folder, and exports from job review", async () => {
     const packetDir = "/tmp/applykit_packets/Acme_Senior_Support_Engineer_2026-03-14";
     const writeText = vi.fn().mockResolvedValue(undefined);
     installClipboardMock(writeText);
 
-    invokeSafeMock.mockImplementation(async (command) => {
+    invokeSafeMock.mockImplementation(async (command, payload) => {
       switch (command) {
         case "list_jobs_cmd":
           return { jobs: [] };
@@ -245,10 +245,18 @@ describe("App workflow integration", () => {
           return defaultSettings;
         case "generate_packet_cmd":
           return generateResponse(packetDir);
+        case "open_output_folder":
+          expect(payload).toEqual({ path: packetDir });
+          return undefined;
         case "export_markdown_cmd":
+          expect(payload).toEqual({ input: { packetDir } });
           return { ok: true, message: "Markdown export complete" };
         case "export_docx_cmd":
+          expect(payload).toEqual({ input: { packetDir } });
           return { ok: true, message: "DOCX export complete" };
+        case "export_pdf_cmd":
+          expect(payload).toEqual({ input: { packetDir } });
+          return { ok: true, message: "PDF export complete" };
         default:
           throw new Error(`Unexpected command: ${command}`);
       }
@@ -256,6 +264,11 @@ describe("App workflow integration", () => {
 
     render(<App />);
     await generatePacketInApp();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Folder" }));
+    await waitFor(() => {
+      expect(invokeSafeMock).toHaveBeenCalledWith("open_output_folder", { path: packetDir });
+    });
 
     fireEvent.click(screen.getByRole("tab", { name: /messages/i }));
     fireEvent.click(screen.getAllByRole("button", { name: "Copy" })[0]);
@@ -265,9 +278,11 @@ describe("App workflow integration", () => {
     fireEvent.click(screen.getByRole("tab", { name: /export/i }));
     fireEvent.click(screen.getByRole("button", { name: "Export Markdown Bundle" }));
     fireEvent.click(screen.getByRole("button", { name: "Export DOCX" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export PDF" }));
 
     await screen.findByText("Markdown export complete");
     expect(screen.getByText("DOCX export complete")).toBeInTheDocument();
+    expect(screen.getByText("PDF export complete")).toBeInTheDocument();
   });
 
   it("shows generated packet artifacts in the preview pane", async () => {
