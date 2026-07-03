@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { invokeSafe } from "./lib/tauri";
@@ -268,6 +268,39 @@ describe("App workflow integration", () => {
 
     await screen.findByText("Markdown export complete");
     expect(screen.getByText("DOCX export complete")).toBeInTheDocument();
+  });
+
+  it("shows generated packet artifacts in the preview pane", async () => {
+    const packetDir = "/tmp/applykit_packets/Acme_Senior_Support_Engineer_2026-03-14";
+
+    invokeSafeMock.mockImplementation(async (command) => {
+      switch (command) {
+        case "list_jobs_cmd":
+          return { jobs: [] };
+        case "insights_cmd":
+          return { repliesByTrack: [], commonGaps: [], keywordCorrelations: [] };
+        case "get_settings_cmd":
+          return defaultSettings;
+        case "generate_packet_cmd":
+          return generateResponse(packetDir);
+        default:
+          throw new Error(`Unexpected command: ${command}`);
+      }
+    });
+
+    render(<App />);
+    await generatePacketInApp();
+
+    expect(screen.getByRole("heading", { name: "Packet Preview" })).toBeInTheDocument();
+    expect(screen.getByText("FitScore.md")).toBeInTheDocument();
+    expect(screen.getByText("50 / 100")).toBeInTheDocument();
+
+    const artifactTabs = screen.getByRole("tablist", { name: "Packet artifacts" });
+    fireEvent.click(within(artifactTabs).getByRole("tab", { name: "Plan" }));
+    expect(screen.getByText("TailorPlan.md")).toBeInTheDocument();
+
+    fireEvent.click(within(artifactTabs).getByRole("tab", { name: "Resume" }));
+    expect(screen.getByText("Resume_1pg_Tailored.md")).toBeInTheDocument();
   });
 
   it("handles the packet-path copy shortcut for both success and clipboard errors", async () => {

@@ -352,12 +352,13 @@ a:focus-visible,
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  overflow-wrap: anywhere;
 }
 
 .markdown-viewer h2,
 .markdown-viewer h3,
 .markdown-viewer h4 {
-  margin: 0;
+  margin: var(--space-2) 0 0;
 }
 
 .markdown-viewer p {
@@ -365,9 +366,102 @@ a:focus-visible,
   color: var(--text);
 }
 
-.markdown-viewer ul {
+.markdown-viewer ul,
+.markdown-viewer ol {
   margin: 0;
   padding-left: 20px;
+}
+
+.markdown-viewer blockquote {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.markdown-viewer hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.markdown-viewer code {
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.markdown-code {
+  margin: 0;
+  padding: var(--space-3);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  white-space: pre-wrap;
+}
+
+.markdown-code code {
+  padding: 0;
+  background: transparent;
+}
+
+.packet-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.packet-summary div {
+  min-width: 0;
+}
+
+.packet-summary strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.packet-artifacts {
+  min-height: 520px;
+}
+
+.artifact-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: var(--space-2);
+}
+
+.artifact-tab {
+  min-height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 700;
+  padding: 7px 8px;
+}
+
+.artifact-tab:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.artifact-tab.active,
+.artifact-tab[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  color: var(--text);
+}
+
+.artifact-preview {
+  max-height: 62vh;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .form-grid {
@@ -671,6 +765,10 @@ textarea {
 
   .preview-trigger {
     flex: 1;
+  }
+
+  .packet-summary {
+    grid-template-columns: 1fr;
   }
 }
 

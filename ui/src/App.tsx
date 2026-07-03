@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { CommandPalette } from "./components/CommandPalette";
 import { DiffViewer } from "./components/DiffViewer";
-import { MarkdownViewer } from "./components/MarkdownViewer";
+import { PacketPreview } from "./components/PacketPreview";
 import { ToastHost, type Toast } from "./components/ToastHost";
 import { invokeSafe } from "./lib/tauri";
 import type {
@@ -419,40 +419,7 @@ export default function App() {
     );
   })();
 
-  const preview = (
-    <div className="stack-lg">
-      <section className="card">
-        <h3>Preview</h3>
-        <p className="subtle">
-          {selectedDetail
-            ? `Packet: ${selectedDetail.packetDir}`
-            : "Generate or open a packet to preview tailored artifacts."}
-        </p>
-      </section>
-      {selectedDetail ? (
-        <>
-          <section className="card stack-sm">
-            <h4>Extraction Source</h4>
-            <span className="chip">{selectedDetail.extractionSource ?? "deterministic"}</span>
-            {selectedDetail.extractionDiagnostics?.summarizeFallbackReasons?.length ? (
-              <p className="subtle">
-                summarize_jd fallback:{" "}
-                {selectedDetail.extractionDiagnostics.summarizeFallbackReasons.join(", ")}
-              </p>
-            ) : null}
-          </section>
-          <section className="card stack-sm">
-            <h4>Resume Preview</h4>
-            <MarkdownViewer markdown={selectedDetail.resume1pg} />
-          </section>
-        </>
-      ) : (
-        <section className="card code-preview">
-          <pre>No packet selected yet.</pre>
-        </section>
-      )}
-    </div>
-  );
+  const preview = <PacketPreview detail={selectedDetail} />;
 
   const diffPreview = (
     <div className="stack-lg">
