@@ -137,15 +137,12 @@ describe("App workflow integration", () => {
   });
 
   it("defers startup data loads until after the initial render", async () => {
-    vi.useFakeTimers();
     invokeSafeMock.mockResolvedValue({});
 
     render(<App />);
 
     expect(screen.getByText("ApplyKit Dashboard")).toBeInTheDocument();
     expect(invokeSafeMock).not.toHaveBeenCalled();
-
-    await vi.runOnlyPendingTimersAsync();
 
     await waitFor(() => {
       expect(invokeSafeMock).toHaveBeenCalledWith("list_jobs_cmd", {});
