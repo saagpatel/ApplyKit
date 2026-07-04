@@ -6,4 +6,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Preserve deterministic lowercase job-description hashes with `sha2` 0.11.
 - Initial release
