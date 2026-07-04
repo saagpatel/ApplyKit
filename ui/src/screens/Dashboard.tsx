@@ -17,13 +17,14 @@ export function Dashboard({ jobs, onNewJob, onOpenJob, insights }: Props) {
   const [trackFilter, setTrackFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [now] = useState(() => Date.now());
 
   const filteredJobs = useMemo(() => {
     let out = jobs.slice();
 
     if (daysFilter !== "all") {
       const days = Number(daysFilter);
-      const threshold = Date.now() - days * 24 * 60 * 60 * 1000;
+      const threshold = now - days * 24 * 60 * 60 * 1000;
       out = out.filter((job) => new Date(job.updatedAt).getTime() >= threshold);
     }
 
@@ -46,7 +47,7 @@ export function Dashboard({ jobs, onNewJob, onOpenJob, insights }: Props) {
     }
 
     return out;
-  }, [jobs, daysFilter, trackFilter, statusFilter, search]);
+  }, [jobs, daysFilter, trackFilter, statusFilter, search, now]);
 
   const trackOptions = useMemo(() => {
     return Array.from(new Set(jobs.map((job) => job.track).filter(Boolean) as string[])).sort((a, b) =>

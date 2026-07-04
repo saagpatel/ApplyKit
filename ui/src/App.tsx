@@ -139,9 +139,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    void loadJobs();
-    void loadInsights();
-    void loadSettings();
+    const timer = window.setTimeout(() => {
+      void loadJobs();
+      void loadInsights();
+      void loadSettings();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
