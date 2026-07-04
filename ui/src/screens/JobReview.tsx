@@ -1,5 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { BulletPicker } from "../components/BulletPicker";
 import { DiffViewer } from "../components/DiffViewer";
 import { FitScoreCard } from "../components/FitScoreCard";
@@ -37,24 +37,7 @@ export function JobReview({
   onUpdateTracker
 }: Props) {
   const [tab, setTab] = useState<AppTab>("overview");
-  const [status, setStatus] = useState(detail?.trackerRow.status ?? "new");
-  const [nextAction, setNextAction] = useState(detail?.trackerRow.nextAction ?? "");
-  const [notes, setNotes] = useState("");
-
-  useEffect(() => {
-    setStatus(detail?.trackerRow.status ?? "new");
-    setNextAction(detail?.trackerRow.nextAction ?? "");
-    setNotes("");
-  }, [detail?.packetDir, detail?.trackerRow.status, detail?.trackerRow.nextAction]);
-
   const packetDir = detail?.packetDir;
-  const trackerDirty = useMemo(() => {
-    return (
-      status !== (detail?.trackerRow.status ?? "new") ||
-      nextAction !== (detail?.trackerRow.nextAction ?? "") ||
-      notes.length > 0
-    );
-  }, [status, nextAction, notes, detail]);
 
   return (
     <section className="stack-lg">
@@ -206,55 +189,81 @@ export function JobReview({
 
         <Tabs.Content value="tracker">
           {detail ? (
-            <section className="card stack-sm">
-              <h3>Tracker</h3>
-              <label>
-                Status
-                <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                  <option value="new">new</option>
-                  <option value="applied">applied</option>
-                  <option value="reply">reply</option>
-                  <option value="interview">interview</option>
-                  <option value="closed">closed</option>
-                </select>
-              </label>
-              <label>
-                Next action
-                <input
-                  value={nextAction}
-                  onChange={(e) => setNextAction(e.target.value)}
-                  placeholder="Follow up on Monday"
-                />
-              </label>
-              <label>
-                Notes
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={4}
-                  placeholder="Interview prep notes"
-                />
-              </label>
-              <div className="row end">
-                <button
-                  className="btn btn-primary"
-                  disabled={!trackerDirty}
-                  onClick={async () => {
-                    try {
-                      await onUpdateTracker(status, nextAction, notes);
-                      setNotes("");
-                    } catch {
-                      // parent handler already surfaces user-facing error feedback
-                    }
-                  }}
-                >
-                  Save Tracker
-                </button>
-              </div>
-            </section>
+            <TrackerForm
+              key={detail.packetDir}
+              initialStatus={detail.trackerRow.status ?? "new"}
+              initialNextAction={detail.trackerRow.nextAction ?? ""}
+              onUpdateTracker={onUpdateTracker}
+            />
           ) : null}
         </Tabs.Content>
       </Tabs.Root>
+    </section>
+  );
+}
+
+function TrackerForm({
+  initialStatus,
+  initialNextAction,
+  onUpdateTracker
+}: {
+  initialStatus: string;
+  initialNextAction: string;
+  onUpdateTracker: (status: string, nextAction: string, notes: string) => Promise<void>;
+}) {
+  const [status, setStatus] = useState(initialStatus);
+  const [nextAction, setNextAction] = useState(initialNextAction);
+  const [notes, setNotes] = useState("");
+  const trackerDirty = useMemo(() => {
+    return status !== initialStatus || nextAction !== initialNextAction || notes.length > 0;
+  }, [status, nextAction, notes, initialStatus, initialNextAction]);
+
+  return (
+    <section className="card stack-sm">
+      <h3>Tracker</h3>
+      <label>
+        Status
+        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="new">new</option>
+          <option value="applied">applied</option>
+          <option value="reply">reply</option>
+          <option value="interview">interview</option>
+          <option value="closed">closed</option>
+        </select>
+      </label>
+      <label>
+        Next action
+        <input
+          value={nextAction}
+          onChange={(e) => setNextAction(e.target.value)}
+          placeholder="Follow up on Monday"
+        />
+      </label>
+      <label>
+        Notes
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={4}
+          placeholder="Interview prep notes"
+        />
+      </label>
+      <div className="row end">
+        <button
+          className="btn btn-primary"
+          disabled={!trackerDirty}
+          onClick={async () => {
+            try {
+              await onUpdateTracker(status, nextAction, notes);
+              setNotes("");
+            } catch {
+              // parent handler already surfaces user-facing error feedback
+            }
+          }}
+        >
+          Save Tracker
+        </button>
+      </div>
     </section>
   );
 }
