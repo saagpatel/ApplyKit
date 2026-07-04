@@ -12,6 +12,10 @@ Source of truth for active `cargo audit` ignore entries in `/Users/d/Projects/Ap
 | Unicode/urlpattern transitive warnings | `RUSTSEC-2025-0075`, `RUSTSEC-2025-0080`, `RUSTSEC-2025-0081`, `RUSTSEC-2025-0098`, `RUSTSEC-2025-0100` | residual accepted (issue closed) | 2026-03-01 | Pulled through `urlpattern -> tauri-utils`; no compatible dry-run update removed chain | applykit-platform | AK-303 ([#9](https://github.com/saagar210/ApplyKit/issues/9)) | 2026-03-31 | on next compatible dependency release |
 | Rand transitive warning | `RUSTSEC-2026-0097` | residual accepted (tracked) | 2026-04-12 | Still present after latest compatible `tauri`, `tauri-build`, `tauri-utils`, and lockfile refreshes; active through transitive `reqwest/proptest` plus `tauri-utils`/`wry` chains with no compatible repo-local removal | applykit-platform | AK-305 | 2026-04-30 | on next compatible dependency release |
 
+## 2026-07-04 Dependency Hygiene Note
+
+- `sha2` was validated at `0.11` with an explicit lowercase hex encoding regression test for job-description hashes, preserving deterministic packet/job IDs across the digest API change.
+
 ## 2026-04-12 Revalidation Snapshot
 
 - Canonical strict audit (with tracked ignore list):

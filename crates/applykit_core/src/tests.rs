@@ -3,7 +3,7 @@ mod suite {
     use crate::banks::load_banks;
     use crate::config::{save_runtime_settings, RuntimeSettings};
     use crate::jd::{extract_structured, normalize_jd};
-    use crate::pipeline::{generate_packet, GenerateOptions};
+    use crate::pipeline::{generate_packet, hash_jd, GenerateOptions};
     use crate::types::{Baseline, ExtractionSource, GenerateInput};
     use chrono::NaiveDate;
     use proptest::prelude::*;
@@ -265,6 +265,14 @@ mod suite {
         assert_eq!(first.resume_1pg, second.resume_1pg);
         assert_eq!(first.fit.total, second.fit.total);
         assert_eq!(first.track.selected, second.track.selected);
+    }
+
+    #[test]
+    fn jd_hash_uses_lowercase_sha256_hex() {
+        assert_eq!(
+            hash_jd("abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
     }
 
     #[test]
