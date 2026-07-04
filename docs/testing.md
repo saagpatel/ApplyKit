@@ -9,6 +9,9 @@ fixtures/jd_*.txt + expected snapshots (normalized)
 - Unit: extraction, classification, scoring, truth validation
 - Snapshot: full packet outputs (`JD.txt`, `Extracted.json`, `FitScore.md`, `TailorPlan.md`, resumes/messages, `TrackerRow.csv`, `Diff.md`)
 - UI smoke: generate + preview + open folder
+- UI hook safety: startup data loads are deferred past the initial render, and
+  packet tracker form state resets through keyed remounts instead of effect-time
+  state synchronization.
 - Tauri/UI contract: native packet detail responses serialize to the camelCase
   keys consumed by the packet preview (`packetDetail`, `resume1pg`,
   `hiringManager`, `coverShort`)

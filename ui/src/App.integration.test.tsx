@@ -133,6 +133,25 @@ describe("App workflow integration", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
+  });
+
+  it("defers startup data loads until after the initial render", async () => {
+    vi.useFakeTimers();
+    invokeSafeMock.mockResolvedValue({});
+
+    render(<App />);
+
+    expect(screen.getByText("ApplyKit Dashboard")).toBeInTheDocument();
+    expect(invokeSafeMock).not.toHaveBeenCalled();
+
+    await vi.runOnlyPendingTimersAsync();
+
+    await waitFor(() => {
+      expect(invokeSafeMock).toHaveBeenCalledWith("list_jobs_cmd", {});
+      expect(invokeSafeMock).toHaveBeenCalledWith("insights_cmd", {});
+      expect(invokeSafeMock).toHaveBeenCalledWith("get_settings_cmd", {});
+    });
   });
 
   it("resolves the generated job id before saving tracker updates", async () => {
