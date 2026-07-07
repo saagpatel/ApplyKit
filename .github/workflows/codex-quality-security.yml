@@ -16,7 +16,7 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
       - name: Setup Node
@@ -60,7 +60,7 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: TruffleHog secret scan
@@ -71,7 +71,7 @@ jobs:
   sast:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
@@ -80,7 +80,7 @@ jobs:
   dependency_and_misconfig:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trivy FS scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -100,6 +100,6 @@ jobs:
       actions: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: OpenSSF Scorecard
         uses: ossf/scorecard-action@v2.4.3
