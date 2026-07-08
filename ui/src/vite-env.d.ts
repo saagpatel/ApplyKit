@@ -1,0 +1,1 @@
+@ui/src/vite-env.d.ts
