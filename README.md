@@ -58,6 +58,7 @@ cargo tauri build
 | Language | Rust 2021 |
 | Desktop shell | Tauri 2 |
 | UI | React + TypeScript |
+| Frontend build | Vite with typed stylesheet side-effect imports |
 | LLM | Ollama / LM Studio (local) via reqwest |
 | Core crates | applykit_core, applykit_llm, applykit_export, applykit_cli |
 | Persistence | SQLite via rusqlite |
