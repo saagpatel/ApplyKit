@@ -125,7 +125,7 @@ workspaces should follow.
 ## Cluster taxonomy update
 
 | Cluster | Count | Notes |
-|---|---|
+|---|---|---|
 | **Signing (Apple desktop)** | **32** (provisional — Active state) | 30 RF + 1 IRS-local-pending + 1 JobMarketHeatmap-Active + **1 ApplyKit-Active** |
 
 The signing cluster now has 2 Active members (JobMarketHeatmap +
