@@ -37,6 +37,9 @@ never best-effort parsed.
 - **Truth status is scoped to packet origin.** A consumer must not represent
   fields it fills itself (heuristics, AI fallback, user edits) as covered by
   this manifest's `truth` verdict.
+- **Custom ATS answers are explicit operator input.** `custom_fields` is an
+  optional map keyed by the target form's field name or label. It is signed for
+  integrity, but is not a truth-gated claim and is never inferred by ApplyKit.
 
 ## Consumer truth-status model (recommended)
 
@@ -83,6 +86,9 @@ never best-effort parsed.
     { "role": "cover_note", "path": "CoverNote_Short.md",     "sha256": "<hex>", "format": "md" }
     // ... one entry per packet deliverable, sorted by path
   ],
+  "custom_fields": {
+    "desired_salary": "180000"
+  },
   "signature": {                          // OPTIONAL — absent on unsigned packets
     "alg": "ed25519",
     "public_key": "<hex of 32-byte Ed25519 public key>",
@@ -103,12 +109,18 @@ bytes of these newline-joined lines:
 schema=<schema_version>
 packet_id=<packet_id>
 artifact\0<path>\0<sha256>      // one per artifact, each line sorted ascending
+custom_field\0<key>\0<value>     // one per supplied answer, sorted by key
 truth_passed=<true|false>
 ```
 
-Editing any artifact (its hash), the identity (its id), the schema, or the truth
-verdict changes this payload and invalidates the signature. `generated_at` and
-`generator` are intentionally NOT signed (non-security-relevant metadata).
+Editing any artifact (its hash), the identity (its id), a custom field, the
+schema, or the truth verdict changes this payload and invalidates the signature.
+`generated_at` and `generator` are intentionally NOT signed (non-security-relevant
+metadata).
+
+`custom_fields`, when present, is safe for a consumer to persist for adapter
+mapping because it is signature-covered. Its values remain outside the packet's
+truth verdict.
 
 Verification: rebuild the payload from the parsed manifest, decode
 `signature.public_key`, and verify. A valid signature proves **integrity**. To
@@ -136,3 +148,20 @@ than parsing partially.
   Ed25519 keypair (`config/signing_key.hex`, 0600). The `signature` block embeds
   the public key + fingerprint. A consumer verifies integrity against the
   embedded key and asserts provenance by pinning `public_key_id`.
+
+## Supplying ATS answers from the CLI
+
+Pass a JSON object with `--custom-fields` when generating a packet. Keys must
+be the target ATS field name or visible label; values are explicit operator
+answers and are persisted by JCC as `custom_fields`.
+
+```json
+{
+  "desired_salary": "180000",
+  "Are you authorized to work?": "Yes"
+}
+```
+
+```bash
+applykit generate ... --custom-fields answers.json
+```

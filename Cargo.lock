@@ -105,6 +105,8 @@ dependencies = [
  "applykit_core",
  "chrono",
  "clap",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]

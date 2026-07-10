@@ -14,6 +14,7 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 /// Current manifest schema version. A consumer that does not recognize this
@@ -105,6 +106,10 @@ pub struct VapManifest {
     pub truth: ManifestTruth,
     pub fit: ManifestFit,
     pub artifacts: Vec<ManifestArtifact>,
+    /// Operator-supplied ATS answers keyed by the target form's field name or label.
+    /// These values are signed for integrity but are outside the truth-gate verdict.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub custom_fields: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<ManifestSignature>,
 }
@@ -162,6 +167,9 @@ pub fn signing_payload(manifest: &VapManifest) -> Vec<u8> {
         .collect();
     artifact_lines.sort();
     lines.extend(artifact_lines);
+    for (key, value) in &manifest.custom_fields {
+        lines.push(format!("custom_field\0{key}\0{value}"));
+    }
     lines.push(format!("truth_passed={}", manifest.truth.passed));
     lines.join("\n").into_bytes()
 }
@@ -201,6 +209,7 @@ pub fn build_manifest(inputs: ManifestInputs) -> VapManifest {
         truth: inputs.truth,
         fit: inputs.fit,
         artifacts,
+        custom_fields: BTreeMap::new(),
         signature: None,
     }
 }

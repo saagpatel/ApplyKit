@@ -212,6 +212,16 @@ mod tests {
     }
 
     #[test]
+    fn tampering_a_custom_field_breaks_the_signature() {
+        let signer = PacketSigner::from_seed(&[7u8; 32]);
+        let mut manifest = sample_manifest();
+        manifest.custom_fields.insert("desired_salary".to_string(), "180000".to_string());
+        signer.sign_manifest(&mut manifest);
+        manifest.custom_fields.insert("desired_salary".to_string(), "190000".to_string());
+        assert!(!verify_manifest_signature(&manifest));
+    }
+
+    #[test]
     fn flipping_truth_verdict_breaks_the_signature() {
         let signer = PacketSigner::from_seed(&[7u8; 32]);
         let mut manifest = sample_manifest();
