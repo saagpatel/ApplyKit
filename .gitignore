@@ -14,3 +14,6 @@
 /.perf-results/
 /ui/test-results/
 /ui/playwright-report/
+
+# VAP manifest signing key (per-install secret; never commit)
+/config/signing_key.hex

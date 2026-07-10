@@ -237,6 +237,89 @@ mod suite {
         assert_eq!(packet_snapshot(&result.packet_dir), expected_packet_str);
     }
 
+    fn generate_support_packet(outdir: &Path) -> crate::types::GenerateResultData {
+        let temp_repo = prepare_temp_repo_with_deterministic_runtime();
+        generate_packet(
+            GenerateInput {
+                company: "Acme".to_string(),
+                role: "Senior Support Engineer".to_string(),
+                source: "LinkedIn".to_string(),
+                baseline: Baseline::OnePage,
+                jd_text: fixture("jd_support_ops_01.txt"),
+                outdir: Some(outdir.to_path_buf()),
+                run_date: Some(NaiveDate::from_ymd_opt(2026, 2, 14).expect("date")),
+                track_override: None,
+                allow_unapproved: false,
+            },
+            GenerateOptions { repo_root: temp_repo.path().to_path_buf() },
+        )
+        .expect("generate")
+    }
+
+    #[test]
+    fn generate_emits_verifiable_vap_manifest() {
+        use crate::manifest::{VapManifest, MANIFEST_FILENAME, TRUTH_GATE_METHOD};
+
+        let outdir = tempfile::tempdir().expect("tmpdir");
+        let result = generate_support_packet(outdir.path());
+
+        let manifest_path = result.packet_dir.join(MANIFEST_FILENAME);
+        assert!(manifest_path.exists(), "packet must contain {MANIFEST_FILENAME}");
+        let manifest: VapManifest =
+            serde_json::from_str(&std::fs::read_to_string(&manifest_path).expect("read manifest"))
+                .expect("parse manifest");
+
+        assert_eq!(manifest.schema_version, "vap/1");
+        assert!(manifest.packet_id.starts_with("sha256:"));
+        // Phase 1b: the packet is signed and the signature verifies.
+        assert!(manifest.signature.is_some(), "generated packet must be signed");
+        assert!(
+            crate::signing::verify_manifest_signature(&manifest),
+            "embedded signature must verify over the packet"
+        );
+        assert_eq!(manifest.truth.method, TRUTH_GATE_METHOD);
+        assert!(manifest.truth.passed, "deterministic packet must pass the truth gate");
+        assert_eq!(manifest.source.company, "Acme");
+        assert_eq!(manifest.source.source_platform, "LinkedIn");
+
+        // Every listed artifact's hash matches the file on disk (intact packet).
+        assert!(!manifest.artifacts.is_empty());
+        assert!(
+            manifest.verify_against_dir(&result.packet_dir).is_empty(),
+            "freshly generated packet must verify clean"
+        );
+
+        // The manifest lists packet deliverables only, never itself or ReviewData.
+        assert!(manifest
+            .artifacts
+            .iter()
+            .all(|a| { a.path != MANIFEST_FILENAME && a.path != "ReviewData.json" }));
+        assert!(manifest.artifacts.iter().any(|a| a.role == "resume_1pg"));
+    }
+
+    #[test]
+    fn manifest_packet_id_is_deterministic_across_runs() {
+        use crate::manifest::{VapManifest, MANIFEST_FILENAME};
+
+        let read_id = |dir: &Path| -> String {
+            let result = generate_support_packet(dir);
+            let manifest: VapManifest = serde_json::from_str(
+                &std::fs::read_to_string(result.packet_dir.join(MANIFEST_FILENAME))
+                    .expect("read manifest"),
+            )
+            .expect("parse manifest");
+            manifest.packet_id
+        };
+
+        let a = tempfile::tempdir().expect("tmp a");
+        let b = tempfile::tempdir().expect("tmp b");
+        assert_eq!(
+            read_id(a.path()),
+            read_id(b.path()),
+            "same JD + config must yield the same content-addressed packet_id"
+        );
+    }
+
     #[test]
     fn deterministic_repeatable_output() {
         let outdir = tempfile::tempdir().expect("tmpdir");
