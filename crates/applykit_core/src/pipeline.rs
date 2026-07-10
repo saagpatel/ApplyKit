@@ -358,6 +358,38 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
         files_written,
     };
 
+    // Emit the versioned VAP manifest (schema vap/1) so a downstream consumer
+    // (e.g. JobCommandCenter) can identify the packet, trust the truth-gate
+    // verdict, and detect post-generation edits. Written before ReviewData.json
+    // so the manifest lists only the packet deliverables, never itself.
+    crate::manifest::emit_manifest_file(
+        &generated.packet_dir,
+        &generated.files_written,
+        crate::manifest::ManifestSource {
+            company: input.company.clone(),
+            role: input.role.clone(),
+            jd_sha256: hash_jd(&input.jd_text),
+            source_platform: input.source.clone(),
+        },
+        crate::manifest::ManifestTruth {
+            method: crate::manifest::TRUTH_GATE_METHOD.to_string(),
+            gate_version: crate::manifest::TRUTH_GATE_VERSION.to_string(),
+            passed: generated.truth_report.passed,
+            provenance_complete: generated.truth_report.provenance_complete,
+            violations: generated.truth_report.violations.clone(),
+            unknown_tools: generated.truth_report.unknown_tools.clone(),
+            claim_issues: generated.truth_report.claim_issues.clone(),
+        },
+        crate::manifest::ManifestFit {
+            track: generated.track.selected.to_string(),
+            total: generated.fit.total,
+            gaps: generated.fit.gaps.clone(),
+        },
+        Local::now().to_rfc3339(),
+        option_env!("APPLYKIT_GIT_SHA").map(|sha| sha.to_string()),
+    )
+    .context("emitting packet manifest")?;
+
     let review_data_path = generated.packet_dir.join("ReviewData.json");
     let review_data = serde_json::to_string_pretty(&generated)?;
     std::fs::write(&review_data_path, review_data)

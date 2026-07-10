@@ -5,6 +5,7 @@ pub mod determinism;
 pub mod diff;
 pub mod insights;
 pub mod jd;
+pub mod manifest;
 pub mod messages;
 pub mod packet;
 pub mod pipeline;
