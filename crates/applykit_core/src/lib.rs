@@ -11,6 +11,7 @@ pub mod packet;
 pub mod pipeline;
 pub mod resume;
 pub mod score;
+pub mod signing;
 pub mod source_preview;
 pub mod storage;
 pub mod truth_gate;

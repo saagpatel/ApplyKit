@@ -83,13 +83,38 @@ never best-effort parsed.
     { "role": "cover_note", "path": "CoverNote_Short.md",     "sha256": "<hex>", "format": "md" }
     // ... one entry per packet deliverable, sorted by path
   ],
-  "signature": {                          // OPTIONAL — absent in Phase 1a (unsigned)
+  "signature": {                          // OPTIONAL — absent on unsigned packets
     "alg": "ed25519",
-    "public_key_id": "<key fingerprint>",
-    "signature": "<hex over canonical manifest with signature field removed>"
+    "public_key": "<hex of 32-byte Ed25519 public key>",
+    "public_key_id": "<sha256 fingerprint of public_key>",
+    "signature": "<hex of 64-byte signature over the signing payload below>"
   }
 }
 ```
+
+## Signing payload (what the signature covers)
+
+The Ed25519 signature is computed over a deterministic, formatting-independent
+payload — NOT the raw JSON — so an independent verifier reconstructs the exact
+signed bytes without agreeing on JSON serialization. The payload is the UTF-8
+bytes of these newline-joined lines:
+
+```
+schema=<schema_version>
+packet_id=<packet_id>
+artifact\0<path>\0<sha256>      // one per artifact, each line sorted ascending
+truth_passed=<true|false>
+```
+
+Editing any artifact (its hash), the identity (its id), the schema, or the truth
+verdict changes this payload and invalidates the signature. `generated_at` and
+`generator` are intentionally NOT signed (non-security-relevant metadata).
+
+Verification: rebuild the payload from the parsed manifest, decode
+`signature.public_key`, and verify. A valid signature proves **integrity**. To
+also assert **provenance**, pin the expected `public_key_id` in the consumer and
+compare. ApplyKit persists its keypair at `config/signing_key.hex` (0600,
+gitignored) and embeds the public key + fingerprint in every signed manifest.
 
 ### Artifact roles
 
@@ -105,8 +130,9 @@ than parsing partially.
 
 ## Phase status
 
-- **Phase 1a (current):** manifest emitted with content-addressed `packet_id`
-  and per-artifact SHA-256. `signature` omitted (unsigned).
-- **Phase 1b (gated on dependency approval — `ed25519-dalek`):** ApplyKit signs
-  the canonical manifest (signature field removed) with a local Ed25519 keypair;
-  the consumer verifies with the published public key.
+- **Phase 1a:** manifest emitted with application-identity `packet_id` and
+  per-artifact SHA-256.
+- **Phase 1b (current):** ApplyKit signs every manifest with a per-install
+  Ed25519 keypair (`config/signing_key.hex`, 0600). The `signature` block embeds
+  the public key + fingerprint. A consumer verifies integrity against the
+  embedded key and asserts provenance by pinning `public_key_id`.

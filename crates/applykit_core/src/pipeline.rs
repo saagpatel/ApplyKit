@@ -362,16 +362,19 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
     // (e.g. JobCommandCenter) can identify the packet, trust the truth-gate
     // verdict, and detect post-generation edits. Written before ReviewData.json
     // so the manifest lists only the packet deliverables, never itself.
-    crate::manifest::emit_manifest_file(
-        &generated.packet_dir,
-        &generated.files_written,
-        crate::manifest::ManifestSource {
+    let artifacts = crate::manifest::collect_artifacts(&generated.files_written)
+        .context("hashing packet artifacts")?;
+    let mut manifest = crate::manifest::build_manifest(crate::manifest::ManifestInputs {
+        generated_at: Local::now().to_rfc3339(),
+        generator_version: env!("CARGO_PKG_VERSION").to_string(),
+        git_sha: option_env!("APPLYKIT_GIT_SHA").map(|sha| sha.to_string()),
+        source: crate::manifest::ManifestSource {
             company: input.company.clone(),
             role: input.role.clone(),
             jd_sha256: hash_jd(&input.jd_text),
             source_platform: input.source.clone(),
         },
-        crate::manifest::ManifestTruth {
+        truth: crate::manifest::ManifestTruth {
             method: crate::manifest::TRUTH_GATE_METHOD.to_string(),
             gate_version: crate::manifest::TRUTH_GATE_VERSION.to_string(),
             passed: generated.truth_report.passed,
@@ -380,15 +383,21 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
             unknown_tools: generated.truth_report.unknown_tools.clone(),
             claim_issues: generated.truth_report.claim_issues.clone(),
         },
-        crate::manifest::ManifestFit {
+        fit: crate::manifest::ManifestFit {
             track: generated.track.selected.to_string(),
             total: generated.fit.total,
             gaps: generated.fit.gaps.clone(),
         },
-        Local::now().to_rfc3339(),
-        option_env!("APPLYKIT_GIT_SHA").map(|sha| sha.to_string()),
-    )
-    .context("emitting packet manifest")?;
+        artifacts,
+    });
+    // Sign with the per-install Ed25519 key. A key/IO failure downgrades to an
+    // unsigned manifest (still hash-verifiable) rather than failing generation.
+    match crate::signing::PacketSigner::load_or_create(&options.repo_root.join("config")) {
+        Ok(signer) => signer.sign_manifest(&mut manifest),
+        Err(err) => eprintln!("warning: packet manifest left unsigned: {err}"),
+    }
+    crate::manifest::write_manifest_file(&generated.packet_dir, &manifest)
+        .context("writing packet manifest")?;
 
     let review_data_path = generated.packet_dir.join("ReviewData.json");
     let review_data = serde_json::to_string_pretty(&generated)?;

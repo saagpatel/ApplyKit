@@ -80,11 +80,18 @@ pub struct ManifestFit {
     pub gaps: Vec<String>,
 }
 
-/// Ed25519 signature block. Absent in Phase 1a (unsigned); populated in Phase 1b.
+/// Ed25519 signature block. Absent on unsigned packets; populated when a signing
+/// key is available. The signature covers [`signing_payload`], not the raw JSON,
+/// so it is independent of serialization formatting.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ManifestSignature {
     pub alg: String,
+    /// Hex of the 32-byte Ed25519 public key (lets a consumer verify integrity;
+    /// pin `public_key_id` in the consumer to also assert provenance).
+    pub public_key: String,
+    /// SHA-256 fingerprint of `public_key`.
     pub public_key_id: String,
+    /// Hex of the 64-byte signature over [`signing_payload`].
     pub signature: String,
 }
 
@@ -135,6 +142,28 @@ fn classify_artifact(file_name: &str) -> (String, String) {
 pub fn compute_packet_id(company: &str, role: &str, jd_sha256: &str) -> String {
     let basis = format!("{company}\0{role}\0{jd_sha256}");
     format!("sha256:{}", sha256_hex(basis.as_bytes()))
+}
+
+/// Deterministic bytes an Ed25519 signature covers. Built from the
+/// security-relevant fields (schema, identity, every artifact hash, and the
+/// truth verdict) rather than the raw JSON, so a consumer reconstructs the exact
+/// same payload regardless of serialization formatting or field order. Editing
+/// any artifact (its hash), the identity (its id), the schema, or the verdict
+/// changes this payload and invalidates the signature.
+pub fn signing_payload(manifest: &VapManifest) -> Vec<u8> {
+    let mut lines = vec![
+        format!("schema={}", manifest.schema_version),
+        format!("packet_id={}", manifest.packet_id),
+    ];
+    let mut artifact_lines: Vec<String> = manifest
+        .artifacts
+        .iter()
+        .map(|artifact| format!("artifact\0{}\0{}", artifact.path, artifact.sha256))
+        .collect();
+    artifact_lines.sort();
+    lines.extend(artifact_lines);
+    lines.push(format!("truth_passed={}", manifest.truth.passed));
+    lines.join("\n").into_bytes()
 }
 
 /// Explicit inputs for [`build_manifest`]. Keeping these explicit (rather than
@@ -194,20 +223,10 @@ impl VapManifest {
     }
 }
 
-/// Hash each packet deliverable, build the `vap/1` manifest, and write it to
-/// `packet_dir/packet.manifest.json`. `files_written` is the artifact set
-/// returned by [`crate::packet::write_packet`]; the manifest never lists itself
-/// or `ReviewData.json` because neither is in that set.
-#[allow(clippy::too_many_arguments)]
-pub fn emit_manifest_file(
-    packet_dir: &Path,
-    files_written: &[PathBuf],
-    source: ManifestSource,
-    truth: ManifestTruth,
-    fit: ManifestFit,
-    generated_at: String,
-    git_sha: Option<String>,
-) -> anyhow::Result<VapManifest> {
+/// Hash each packet deliverable into a `ManifestArtifact`. `files_written` is the
+/// artifact set returned by [`crate::packet::write_packet`]; the manifest never
+/// lists itself or `ReviewData.json` because neither is in that set.
+pub fn collect_artifacts(files_written: &[PathBuf]) -> anyhow::Result<Vec<ManifestArtifact>> {
     let mut artifacts = Vec::with_capacity(files_written.len());
     for path in files_written {
         let file_name =
@@ -221,7 +240,32 @@ pub fn emit_manifest_file(
             format,
         });
     }
+    Ok(artifacts)
+}
 
+/// Serialize a manifest and write it to `packet_dir/packet.manifest.json`.
+pub fn write_manifest_file(packet_dir: &Path, manifest: &VapManifest) -> anyhow::Result<()> {
+    let manifest_path = packet_dir.join(MANIFEST_FILENAME);
+    let json = serde_json::to_string_pretty(manifest).context("serializing packet manifest")?;
+    std::fs::write(&manifest_path, json)
+        .with_context(|| format!("writing {}", manifest_path.display()))?;
+    Ok(())
+}
+
+/// Build and write an unsigned `vap/1` manifest in one step (hash artifacts →
+/// build → write). Signing is layered in by the pipeline between build and write
+/// via [`crate::signing`]; this convenience is retained for the unsigned path.
+#[allow(clippy::too_many_arguments)]
+pub fn emit_manifest_file(
+    packet_dir: &Path,
+    files_written: &[PathBuf],
+    source: ManifestSource,
+    truth: ManifestTruth,
+    fit: ManifestFit,
+    generated_at: String,
+    git_sha: Option<String>,
+) -> anyhow::Result<VapManifest> {
+    let artifacts = collect_artifacts(files_written)?;
     let manifest = build_manifest(ManifestInputs {
         generated_at,
         generator_version: env!("CARGO_PKG_VERSION").to_string(),
@@ -231,11 +275,7 @@ pub fn emit_manifest_file(
         fit,
         artifacts,
     });
-
-    let manifest_path = packet_dir.join(MANIFEST_FILENAME);
-    let json = serde_json::to_string_pretty(&manifest).context("serializing packet manifest")?;
-    std::fs::write(&manifest_path, json)
-        .with_context(|| format!("writing {}", manifest_path.display()))?;
+    write_manifest_file(packet_dir, &manifest)?;
     Ok(manifest)
 }
 

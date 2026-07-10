@@ -271,7 +271,12 @@ mod suite {
 
         assert_eq!(manifest.schema_version, "vap/1");
         assert!(manifest.packet_id.starts_with("sha256:"));
-        assert!(manifest.signature.is_none(), "Phase 1a manifest is unsigned");
+        // Phase 1b: the packet is signed and the signature verifies.
+        assert!(manifest.signature.is_some(), "generated packet must be signed");
+        assert!(
+            crate::signing::verify_manifest_signature(&manifest),
+            "embedded signature must verify over the packet"
+        );
         assert_eq!(manifest.truth.method, TRUTH_GATE_METHOD);
         assert!(manifest.truth.passed, "deterministic packet must pass the truth gate");
         assert_eq!(manifest.source.company, "Acme");
