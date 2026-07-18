@@ -1,6 +1,6 @@
 use applykit_core::config::{
     load_config, load_runtime_settings, merge_config_with_runtime, resolve_output_base,
-    save_runtime_settings, validate_local_llm_base_url, RuntimeSettings,
+    save_config, save_runtime_settings, validate_local_llm_base_url, RuntimeSettings,
 };
 use applykit_core::insights::build_insights;
 use applykit_core::pipeline::{
@@ -19,6 +19,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use tauri::Manager;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -434,6 +435,68 @@ fn to_packet_detail_response(detail: applykit_core::types::PacketDetail) -> Pack
 
 fn repo_root() -> Result<PathBuf, String> {
     std::env::current_dir().map_err(|e| format!("reading repo root: {e}"))
+}
+
+fn copy_resource_tree(source: &Path, destination: &Path) -> Result<(), String> {
+    std::fs::create_dir_all(destination)
+        .map_err(|e| format!("creating runtime resources {}: {e}", destination.display()))?;
+    for entry in std::fs::read_dir(source)
+        .map_err(|e| format!("reading bundled resources {}: {e}", source.display()))?
+    {
+        let entry = entry.map_err(|e| format!("reading bundled resource entry: {e}"))?;
+        let source_path = entry.path();
+        let destination_path = destination.join(entry.file_name());
+        if source_path.is_dir() {
+            copy_resource_tree(&source_path, &destination_path)?;
+        } else if !destination_path.exists() {
+            std::fs::copy(&source_path, &destination_path).map_err(|e| {
+                format!(
+                    "copying bundled resource {} to {}: {e}",
+                    source_path.display(),
+                    destination_path.display()
+                )
+            })?;
+        }
+    }
+    Ok(())
+}
+
+fn initialize_installed_runtime_root(
+    resource_root: &Path,
+    app_data: &Path,
+) -> Result<PathBuf, String> {
+    let bundled = resource_root.join("applykit");
+    if !bundled.join("config/applykit.toml").is_file() {
+        return Err(format!(
+            "installed resources are missing applykit/config/applykit.toml under {}",
+            resource_root.display()
+        ));
+    }
+    let runtime_root = app_data.join("runtime");
+    let installed_config_path = runtime_root.join("config/applykit.toml");
+    let config_already_existed = installed_config_path.is_file();
+    for directory in ["config", "data", "templates"] {
+        copy_resource_tree(&bundled.join(directory), &runtime_root.join(directory))?;
+    }
+    if !config_already_existed {
+        let mut config = load_config(&runtime_root)
+            .map_err(|error| format!("loading installed configuration: {error}"))?;
+        config.output.base_dir = app_data.join("packets").to_string_lossy().into_owned();
+        save_config(&runtime_root, &config)
+            .map_err(|error| format!("saving installed configuration: {error}"))?;
+    }
+    Ok(runtime_root)
+}
+
+#[cfg(target_os = "macos")]
+fn macos_resource_dir_from_executable(executable: &Path) -> Result<PathBuf, String> {
+    let executable_dir = executable
+        .parent()
+        .ok_or_else(|| format!("executable has no parent: {}", executable.display()))?;
+    executable_dir
+        .join("../Resources")
+        .canonicalize()
+        .map_err(|error| format!("resolving Resources beside {}: {error}", executable.display()))
 }
 
 fn configured_output_base(repo_root: &Path) -> Result<PathBuf, String> {
@@ -977,6 +1040,41 @@ fn open_output_folder(path: String) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            let cwd_has_resources = std::env::current_dir()
+                .map(|cwd| cwd.join("config/applykit.toml").is_file())
+                .unwrap_or(false);
+            if !cwd_has_resources {
+                let resource_root = match app.path().resource_dir() {
+                    Ok(path) => path,
+                    #[cfg(target_os = "macos")]
+                    Err(tauri_error) => {
+                        let executable = std::env::current_exe().map_err(|error| {
+                            std::io::Error::other(format!(
+                                "resolving current executable after Tauri resource error \
+                                 ({tauri_error}): {error}"
+                            ))
+                        })?;
+                        macos_resource_dir_from_executable(&executable)
+                            .map_err(std::io::Error::other)?
+                    }
+                    #[cfg(not(target_os = "macos"))]
+                    Err(error) => {
+                        return Err(std::io::Error::other(format!(
+                            "resolving bundled resource directory: {error}"
+                        ))
+                        .into());
+                    }
+                };
+                let app_data = app.path().app_data_dir().map_err(|error| {
+                    std::io::Error::other(format!("resolving application data directory: {error}"))
+                })?;
+                let runtime_root = initialize_installed_runtime_root(&resource_root, &app_data)
+                    .map_err(std::io::Error::other)?;
+                std::env::set_current_dir(&runtime_root)?;
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             generate_packet_cmd,
             get_packet_detail_cmd,
@@ -1023,6 +1121,109 @@ mod tests {
             std::env::set_current_dir(path).expect("set cwd");
             Self { previous, _lock: lock }
         }
+    }
+
+    #[test]
+    fn installed_resources_are_copied_to_mutable_app_data_without_overwriting_user_state() {
+        let fixture = tempfile::tempdir().expect("fixture");
+        let resources = fixture.path().join("resources/applykit");
+        let app_data = fixture.path().join("app-data");
+        for directory in ["config", "data", "templates"] {
+            std::fs::create_dir_all(resources.join(directory)).expect("resource dir");
+        }
+        std::fs::write(
+            resources.join("config/applykit.toml"),
+            include_str!("../../config/applykit.toml"),
+        )
+        .expect("config");
+        std::fs::write(resources.join("data/skills.json"), "{}").expect("bank");
+        std::fs::write(resources.join("templates/resume.md"), "bundled").expect("template");
+
+        let runtime =
+            initialize_installed_runtime_root(&fixture.path().join("resources"), &app_data)
+                .expect("initialize");
+        std::fs::write(runtime.join("templates/resume.md"), "user edit").expect("user edit");
+        initialize_installed_runtime_root(&fixture.path().join("resources"), &app_data)
+            .expect("reinitialize");
+
+        assert_eq!(
+            std::fs::read_to_string(runtime.join("templates/resume.md")).expect("read"),
+            "user edit"
+        );
+        assert!(runtime.join("config/applykit.toml").is_file());
+        assert!(runtime.join("data/skills.json").is_file());
+        assert_eq!(
+            load_config(&runtime).expect("installed config").output.base_dir,
+            app_data.join("packets").to_string_lossy()
+        );
+    }
+
+    #[test]
+    fn bundle_resources_exclude_per_install_signing_material() {
+        let config: serde_json::Value =
+            serde_json::from_str(include_str!("../tauri.conf.json")).expect("tauri config");
+        let resources = config["bundle"]["resources"].as_object().expect("bundle resources");
+
+        assert_eq!(
+            resources.get("../config/applykit.toml").and_then(serde_json::Value::as_str),
+            Some("applykit/config/applykit.toml")
+        );
+        assert!(
+            resources.keys().all(|source| !source.contains("signing_key")),
+            "per-install signing material must never be bundled"
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_resource_fallback_resolves_contents_resources() {
+        let fixture = tempfile::tempdir().expect("fixture");
+        let executable = fixture.path().join("ApplyKit.app/Contents/MacOS/applykit_tauri");
+        let resources = fixture.path().join("ApplyKit.app/Contents/Resources");
+        std::fs::create_dir_all(executable.parent().expect("executable parent"))
+            .expect("macos directory");
+        std::fs::create_dir_all(&resources).expect("resources directory");
+        std::fs::write(&executable, "fixture").expect("executable");
+
+        assert_eq!(
+            macos_resource_dir_from_executable(&executable).expect("resource fallback"),
+            resources.canonicalize().expect("canonical resources")
+        );
+    }
+
+    #[test]
+    fn installed_runtime_generates_without_the_source_checkout_as_cwd() {
+        let fixture = tempfile::tempdir().expect("fixture");
+        let resources = fixture.path().join("resources/applykit");
+        let app_data = fixture.path().join("app-data");
+        let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().expect("repo root");
+        copy_dir_recursive(&source_root.join("config"), &resources.join("config"));
+        copy_dir_recursive(&source_root.join("data"), &resources.join("data"));
+        copy_dir_recursive(&source_root.join("templates"), &resources.join("templates"));
+
+        let runtime =
+            initialize_installed_runtime_root(&fixture.path().join("resources"), &app_data)
+                .expect("initialize installed runtime");
+        let output_base = app_data.join("packets");
+
+        let _cwd = CwdGuard::set_to(&runtime);
+        let response = generate_packet_cmd(GeneratePacketInput {
+            company: "Installed Acme".to_string(),
+            role: "Support Engineer".to_string(),
+            source: "Fixture".to_string(),
+            baseline: "1pg".to_string(),
+            jd_text: "Support engineer role with Okta, SSO, and incident response".to_string(),
+            outdir: None,
+            run_date: Some("2026-07-17".to_string()),
+            track_override: None,
+            allow_unapproved: Some(false),
+        })
+        .expect("generate from installed runtime");
+
+        assert!(response.truth_passed);
+        assert!(Path::new(&response.packet_dir).starts_with(&output_base));
+        assert!(Path::new(&response.packet_dir).join("packet.manifest.json").is_file());
+        assert!(runtime.join("config/signing_key.hex").is_file());
     }
 
     impl Drop for CwdGuard {

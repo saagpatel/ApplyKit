@@ -151,6 +151,29 @@ describe("App workflow integration", () => {
     });
   });
 
+  it("shows a retryable error instead of a genuine empty state when saved jobs fail to load", async () => {
+    invokeSafeMock.mockImplementation(async (command) => {
+      if (command === "list_jobs_cmd") {
+        throw new Error("database unavailable");
+      }
+      if (command === "insights_cmd") {
+        return { repliesByTrack: [], commonGaps: [], keywordCorrelations: [] };
+      }
+      if (command === "get_settings_cmd") {
+        return defaultSettings;
+      }
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    render(<App />);
+
+    expect(
+      await screen.findByText("Saved jobs could not be loaded")
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(screen.queryByText("No jobs yet. Generate your first packet.")).not.toBeInTheDocument();
+  });
+
   it("resolves the generated job id before saving tracker updates", async () => {
     const packetDir = "/tmp/applykit_packets/Acme_Senior_Support_Engineer_2026-03-14";
     let listJobsCalls = 0;

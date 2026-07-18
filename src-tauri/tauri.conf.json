@@ -25,6 +25,11 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": []
+    "icon": [],
+    "resources": {
+      "../config/applykit.toml": "applykit/config/applykit.toml",
+      "../data/": "applykit/data/",
+      "../templates/": "applykit/templates/"
+    }
   }
 }

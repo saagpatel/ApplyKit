@@ -5,6 +5,18 @@ use serde_json::json;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static STAGING_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+#[derive(Debug)]
+pub struct StagedPacket {
+    pub temp_dir: PathBuf,
+    pub final_dir: PathBuf,
+    pub staged_files: Vec<PathBuf>,
+    pub final_files: Vec<PathBuf>,
+    pub tracker_row: TrackerRow,
+}
 
 #[derive(Debug, Clone)]
 pub struct PacketWriteInput<'a> {
@@ -12,6 +24,7 @@ pub struct PacketWriteInput<'a> {
     pub date: NaiveDate,
     pub company: &'a str,
     pub role: &'a str,
+    pub identity_suffix: &'a str,
     pub source: &'a str,
     pub jd_text: &'a str,
     pub extracted: &'a ExtractedJd,
@@ -131,26 +144,24 @@ fn tracker_csv(row: &TrackerRow) -> String {
     out
 }
 
-pub fn write_packet(
-    input: PacketWriteInput<'_>,
-) -> anyhow::Result<(PathBuf, Vec<PathBuf>, TrackerRow)> {
+pub fn stage_packet(input: PacketWriteInput<'_>) -> anyhow::Result<StagedPacket> {
     fs::create_dir_all(input.output_base)
         .with_context(|| format!("creating output base {}", input.output_base.display()))?;
 
     let folder_name = format!(
-        "{}_{}_{}",
+        "{}_{}_{}_{}",
         slugify(input.company),
         slugify(input.role),
-        input.date.format("%Y-%m-%d")
+        input.date.format("%Y-%m-%d"),
+        input.identity_suffix
     );
     let final_dir = input.output_base.join(folder_name);
-    let tmp_dir = input
-        .output_base
-        .join(format!(".{}.tmp", final_dir.file_name().unwrap_or_default().to_string_lossy()));
-
-    if tmp_dir.exists() {
-        fs::remove_dir_all(&tmp_dir).with_context(|| format!("cleaning {}", tmp_dir.display()))?;
-    }
+    let sequence = STAGING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    let tmp_dir = input.output_base.join(format!(
+        ".{}.tmp-{}-{sequence}",
+        final_dir.file_name().unwrap_or_default().to_string_lossy(),
+        std::process::id()
+    ));
     fs::create_dir_all(&tmp_dir).with_context(|| format!("creating {}", tmp_dir.display()))?;
 
     let mut files_written = Vec::new();
@@ -198,18 +209,7 @@ pub fn write_packet(
     write_named("Meta.json", &meta_json)?;
     sync_dir(&tmp_dir)?;
 
-    if final_dir.exists() {
-        fs::remove_dir_all(&final_dir)
-            .with_context(|| format!("removing {}", final_dir.display()))?;
-    }
-
-    fs::rename(&tmp_dir, &final_dir).with_context(|| {
-        format!("atomic rename {} -> {}", tmp_dir.display(), final_dir.display())
-    })?;
-    sync_dir(input.output_base)?;
-    sync_dir(&final_dir)?;
-
-    files_written = files_written
+    let final_files: Vec<PathBuf> = files_written
         .into_iter()
         .map(|tmp_path| {
             let file_name =
@@ -218,7 +218,95 @@ pub fn write_packet(
         })
         .collect();
 
-    Ok((final_dir, files_written, tracker_row))
+    let staged_files = final_files
+        .iter()
+        .filter_map(|path| path.file_name().map(|name| tmp_dir.join(name)))
+        .collect();
+    Ok(StagedPacket { temp_dir: tmp_dir, final_dir, staged_files, final_files, tracker_row })
+}
+
+pub fn publish_staged_packet(staged: &StagedPacket) -> anyhow::Result<Option<PathBuf>> {
+    let backup_dir = staged.final_dir.with_file_name(format!(
+        ".{}.backup-{}",
+        staged.final_dir.file_name().unwrap_or_default().to_string_lossy(),
+        std::process::id()
+    ));
+    if backup_dir.exists() {
+        anyhow::bail!("packet backup already exists: {}", backup_dir.display());
+    }
+    let backup = if staged.final_dir.exists() {
+        fs::rename(&staged.final_dir, &backup_dir).with_context(|| {
+            format!(
+                "preserving existing packet {} as {}",
+                staged.final_dir.display(),
+                backup_dir.display()
+            )
+        })?;
+        Some(backup_dir)
+    } else {
+        None
+    };
+    if let Err(error) = fs::rename(&staged.temp_dir, &staged.final_dir) {
+        if let Some(backup) = &backup {
+            let _ = fs::rename(backup, &staged.final_dir);
+        }
+        return Err(error).with_context(|| {
+            format!(
+                "publishing staged packet {} -> {}",
+                staged.temp_dir.display(),
+                staged.final_dir.display()
+            )
+        });
+    }
+    if let Err(sync_error) = sync_dir(staged.final_dir.parent().unwrap_or(Path::new(".")))
+        .and_then(|()| sync_dir(&staged.final_dir))
+    {
+        let mut recovery_errors = Vec::new();
+        if let Err(error) = fs::rename(&staged.final_dir, &staged.temp_dir) {
+            recovery_errors.push(format!("restaging failed: {error}"));
+        }
+        if let Some(backup) = &backup {
+            if let Err(error) = fs::rename(backup, &staged.final_dir) {
+                recovery_errors.push(format!("backup restore failed: {error}"));
+            }
+        }
+        let recovery = if recovery_errors.is_empty() {
+            "previous packet state restored".to_string()
+        } else {
+            recovery_errors.join("; ")
+        };
+        anyhow::bail!("syncing published packet failed: {sync_error}; {recovery}");
+    }
+    Ok(backup)
+}
+
+pub fn rollback_published_packet(
+    staged: &StagedPacket,
+    backup: Option<&Path>,
+) -> anyhow::Result<PathBuf> {
+    let quarantine = staged.final_dir.with_file_name(format!(
+        ".{}.recovery-{}",
+        staged.final_dir.file_name().unwrap_or_default().to_string_lossy(),
+        std::process::id()
+    ));
+    fs::rename(&staged.final_dir, &quarantine).with_context(|| {
+        format!(
+            "quarantining incomplete packet {} as {}",
+            staged.final_dir.display(),
+            quarantine.display()
+        )
+    })?;
+    if let Some(backup) = backup {
+        fs::rename(backup, &staged.final_dir).with_context(|| {
+            format!(
+                "restoring previous packet {} -> {}",
+                backup.display(),
+                staged.final_dir.display()
+            )
+        })?;
+    }
+    sync_dir(staged.final_dir.parent().unwrap_or(Path::new(".")))?;
+    Ok(quarantine)
 }
 
 #[cfg(test)]

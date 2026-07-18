@@ -72,6 +72,12 @@ pub fn load_config(repo_root: &Path) -> anyhow::Result<ApplykitConfig> {
     Ok(config)
 }
 
+pub fn save_config(repo_root: &Path, config: &ApplykitConfig) -> anyhow::Result<()> {
+    let path = repo_root.join("config").join("applykit.toml");
+    let raw = toml::to_string_pretty(config).context("serializing applykit.toml")?;
+    atomic_write_text(&path, &(raw + "\n"))
+}
+
 pub fn runtime_settings_path(repo_root: &Path) -> PathBuf {
     repo_root.join("config").join("applykit.user.toml")
 }

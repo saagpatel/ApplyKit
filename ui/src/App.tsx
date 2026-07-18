@@ -40,6 +40,7 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [jobsLoadError, setJobsLoadError] = useState<string | null>(null);
   const [insights, setInsights] = useState<{
     repliesByTrack: [string, number][];
     commonGaps: [string, number][];
@@ -70,9 +71,11 @@ export default function App() {
       const response = await invokeSafe<{ jobs: JobSummary[] }>("list_jobs_cmd", {});
       const nextJobs = response.jobs ?? [];
       setJobs(nextJobs);
+      setJobsLoadError(null);
       return nextJobs;
-    } catch {
-      setJobs([]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to load saved jobs";
+      setJobsLoadError(message);
       return [];
     }
   };
@@ -216,16 +219,29 @@ export default function App() {
   const main = (() => {
     if (view === "dashboard") {
       return (
-        <Dashboard
-          jobs={jobs}
-          onNewJob={() => setView("new-job")}
-          onOpenJob={(jobId) => void openJobById(jobId)}
-          insights={{
-            repliesByTrack: insights?.repliesByTrack ?? [],
-            commonGaps: insights?.commonGaps ?? [],
-            keywordCorrelations: insights?.keywordCorrelations ?? []
-          }}
-        />
+        <>
+          {jobsLoadError && (
+            <div className="card" role="alert">
+              <strong>Saved jobs could not be loaded</strong>
+              <p>{jobsLoadError}</p>
+              <button className="btn-secondary" onClick={() => void loadJobs()}>
+                Retry
+              </button>
+            </div>
+          )}
+          {!jobsLoadError && (
+            <Dashboard
+              jobs={jobs}
+              onNewJob={() => setView("new-job")}
+              onOpenJob={(jobId) => void openJobById(jobId)}
+              insights={{
+                repliesByTrack: insights?.repliesByTrack ?? [],
+                commonGaps: insights?.commonGaps ?? [],
+                keywordCorrelations: insights?.keywordCorrelations ?? []
+              }}
+            />
+          )}
+        </>
       );
     }
 

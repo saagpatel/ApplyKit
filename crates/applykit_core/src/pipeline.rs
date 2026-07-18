@@ -6,7 +6,9 @@ use crate::config::{
 use crate::diff::inline_diff_md;
 use crate::jd::{extract_structured, merge_extracted_with_summary, parse_llm_jd_summary};
 use crate::messages::generate_messages;
-use crate::packet::{write_packet, PacketWriteInput};
+use crate::packet::{
+    publish_staged_packet, rollback_published_packet, stage_packet, PacketWriteInput,
+};
 use crate::resume::{load_resume_template, tailor_resume};
 use crate::score::compute_fit_score;
 use crate::storage::{get_job_by_id, upsert_job_record, UpsertJobRecordInput};
@@ -239,6 +241,7 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
     let output_base =
         input.outdir.clone().unwrap_or_else(|| resolve_output_base(&cfg.output.base_dir));
     let date = output_date(input.run_date);
+    let jd_hash = hash_jd(&input.jd_text);
     let mut diff_md =
         inline_diff_md(&before, &resume_2pg.clone().unwrap_or_else(|| resume_1pg.clone()));
 
@@ -319,11 +322,12 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
         anyhow::bail!("truth gate failed: {}", truth_report.violations.join(", "));
     }
 
-    let (packet_dir, files_written, tracker_row) = write_packet(PacketWriteInput {
+    let staged = stage_packet(PacketWriteInput {
         output_base: &output_base,
         date,
         company: &input.company,
         role: &input.role,
+        identity_suffix: &jd_hash[..12],
         source: &input.source,
         jd_text: &extracted.normalized_text,
         extracted: &extracted,
@@ -352,17 +356,17 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
         hiring_manager_message,
         cover_short_message,
         diff_md,
-        tracker_row,
+        tracker_row: staged.tracker_row.clone(),
         truth_report,
-        packet_dir: packet_dir.clone(),
-        files_written,
+        packet_dir: staged.final_dir.clone(),
+        files_written: staged.final_files.clone(),
     };
 
     // Emit the versioned VAP manifest (schema vap/1) so a downstream consumer
     // (e.g. JobCommandCenter) can identify the packet, trust the truth-gate
     // verdict, and detect post-generation edits. Written before ReviewData.json
     // so the manifest lists only the packet deliverables, never itself.
-    let artifacts = crate::manifest::collect_artifacts(&generated.files_written)
+    let artifacts = crate::manifest::collect_artifacts(&staged.staged_files)
         .context("hashing packet artifacts")?;
     let mut manifest = crate::manifest::build_manifest(crate::manifest::ManifestInputs {
         generated_at: Local::now().to_rfc3339(),
@@ -390,16 +394,15 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
         },
         artifacts,
     });
-    // Sign with the per-install Ed25519 key. A key/IO failure downgrades to an
-    // unsigned manifest (still hash-verifiable) rather than failing generation.
-    match crate::signing::PacketSigner::load_or_create(&options.repo_root.join("config")) {
-        Ok(signer) => signer.sign_manifest(&mut manifest),
-        Err(err) => eprintln!("warning: packet manifest left unsigned: {err}"),
-    }
-    crate::manifest::write_manifest_file(&generated.packet_dir, &manifest)
+    // A packet presented as generated must carry the per-install signature.
+    // Fail closed so the UI never reports an ordinary success for an unsigned packet.
+    let signer = crate::signing::PacketSigner::load_or_create(&options.repo_root.join("config"))
+        .context("loading packet signing key")?;
+    signer.sign_manifest(&mut manifest);
+    crate::manifest::write_manifest_file(&staged.temp_dir, &manifest)
         .context("writing packet manifest")?;
 
-    let review_data_path = generated.packet_dir.join("ReviewData.json");
+    let review_data_path = staged.temp_dir.join("ReviewData.json");
     let review_data = serde_json::to_string_pretty(&generated)?;
     std::fs::write(&review_data_path, review_data)
         .with_context(|| format!("writing {}", review_data_path.display()))?;
@@ -411,11 +414,11 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
         date.format("%Y-%m-%d"),
         hash_jd(&input.jd_text)
     );
-    let jd_hash = hash_jd(&input.jd_text);
     let track_label = generated.track.selected.to_string();
-    let packet_dir_string = packet_dir.to_string_lossy().to_string();
+    let packet_dir_string = staged.final_dir.to_string_lossy().to_string();
     let db_path = output_base.join("applykit.db");
-    upsert_job_record(
+    let backup = publish_staged_packet(&staged).context("publishing complete packet")?;
+    if let Err(error) = upsert_job_record(
         &db_path,
         UpsertJobRecordInput {
             id: &id,
@@ -429,8 +432,22 @@ pub fn generate_packet(input: GenerateInput, options: GenerateOptions) -> Genera
             fit_total: Some(generated.fit.total as i64),
             output_dir: Some(&packet_dir_string),
         },
-    )
-    .with_context(|| format!("recording job in {}", db_path.display()))?;
+    ) {
+        let quarantine = rollback_published_packet(&staged, backup.as_deref())
+            .context("rolling back packet after tracker failure")?;
+        return Err(error).with_context(|| {
+            format!(
+                "recording job in {}; incomplete packet retained at {}",
+                db_path.display(),
+                quarantine.display()
+            )
+        });
+    }
+    if let Some(backup) = backup {
+        if let Err(error) = std::fs::remove_dir_all(&backup) {
+            eprintln!("warning: previous packet backup retained at {}: {error}", backup.display());
+        }
+    }
 
     Ok(generated)
 }

@@ -351,6 +351,124 @@ mod suite {
     }
 
     #[test]
+    fn different_job_descriptions_on_the_same_day_use_distinct_packet_directories() {
+        let outdir = tempfile::tempdir().expect("tmpdir");
+        let temp_repo = prepare_temp_repo_with_deterministic_runtime();
+        let base = GenerateInput {
+            company: "Acme".to_string(),
+            role: "IT Operations Engineer".to_string(),
+            source: "manual".to_string(),
+            baseline: Baseline::OnePage,
+            jd_text: fixture("jd_automation_ops_01.txt"),
+            outdir: Some(outdir.path().to_path_buf()),
+            run_date: Some(NaiveDate::from_ymd_opt(2026, 2, 14).expect("date")),
+            track_override: None,
+            allow_unapproved: false,
+        };
+        let first = generate_packet(
+            base.clone(),
+            GenerateOptions { repo_root: temp_repo.path().to_path_buf() },
+        )
+        .expect("first packet");
+        let mut second_input = base;
+        second_input.jd_text.push_str("\nAdditional requirement: incident response ownership.");
+        let second = generate_packet(
+            second_input,
+            GenerateOptions { repo_root: temp_repo.path().to_path_buf() },
+        )
+        .expect("second packet");
+
+        assert_ne!(first.packet_dir, second.packet_dir);
+        assert!(first.packet_dir.join("JD.txt").is_file());
+        assert!(second.packet_dir.join("JD.txt").is_file());
+    }
+
+    #[test]
+    fn tracker_failure_restores_the_previous_packet_and_quarantines_the_new_attempt() {
+        let outdir = tempfile::tempdir().expect("tmpdir");
+        let temp_repo = prepare_temp_repo_with_deterministic_runtime();
+        let input = GenerateInput {
+            company: "Acme".to_string(),
+            role: "IT Operations Engineer".to_string(),
+            source: "manual".to_string(),
+            baseline: Baseline::OnePage,
+            jd_text: fixture("jd_automation_ops_01.txt"),
+            outdir: Some(outdir.path().to_path_buf()),
+            run_date: Some(NaiveDate::from_ymd_opt(2026, 2, 14).expect("date")),
+            track_override: None,
+            allow_unapproved: false,
+        };
+        let first = generate_packet(
+            input.clone(),
+            GenerateOptions { repo_root: temp_repo.path().to_path_buf() },
+        )
+        .expect("first packet");
+        std::fs::write(first.packet_dir.join("recovery-marker.txt"), "known good").expect("marker");
+        std::fs::remove_file(outdir.path().join("applykit.db")).expect("remove disposable db");
+        std::fs::create_dir(outdir.path().join("applykit.db")).expect("block database path");
+
+        let error =
+            generate_packet(input, GenerateOptions { repo_root: temp_repo.path().to_path_buf() })
+                .expect_err("tracker failure must fail generation");
+
+        assert!(error.to_string().contains("recording job"));
+        assert_eq!(
+            std::fs::read_to_string(first.packet_dir.join("recovery-marker.txt"))
+                .expect("restored marker"),
+            "known good"
+        );
+        let recovery_dirs = std::fs::read_dir(outdir.path())
+            .expect("output listing")
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_name().to_string_lossy().contains(".recovery-"))
+            .count();
+        assert_eq!(recovery_dirs, 1);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unreadable_signing_key_blocks_generation_without_a_visible_packet() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let outdir = tempfile::tempdir().expect("tmpdir");
+        let temp_repo = prepare_temp_repo_with_deterministic_runtime();
+        let key_path = temp_repo.path().join("config/signing_key.hex");
+        std::fs::write(&key_path, "00".repeat(32)).expect("seed key");
+        let mut permissions = std::fs::metadata(&key_path).expect("key metadata").permissions();
+        permissions.set_mode(0o000);
+        std::fs::set_permissions(&key_path, permissions).expect("deny key access");
+
+        let result = generate_packet(
+            GenerateInput {
+                company: "Acme".to_string(),
+                role: "IT Operations Engineer".to_string(),
+                source: "manual".to_string(),
+                baseline: Baseline::OnePage,
+                jd_text: fixture("jd_automation_ops_01.txt"),
+                outdir: Some(outdir.path().to_path_buf()),
+                run_date: Some(NaiveDate::from_ymd_opt(2026, 2, 14).expect("date")),
+                track_override: None,
+                allow_unapproved: false,
+            },
+            GenerateOptions { repo_root: temp_repo.path().to_path_buf() },
+        );
+
+        let mut restore = std::fs::metadata(&key_path).expect("key metadata").permissions();
+        restore.set_mode(0o600);
+        std::fs::set_permissions(&key_path, restore).expect("restore key permissions");
+
+        let error = result.expect_err("unreadable signing key must block generation");
+        assert!(error.to_string().contains("loading packet signing key"));
+        let visible_packet_dirs = std::fs::read_dir(outdir.path())
+            .expect("output listing")
+            .filter_map(Result::ok)
+            .filter(|entry| !entry.file_name().to_string_lossy().starts_with('.'))
+            .count();
+        assert_eq!(visible_packet_dirs, 0);
+        assert!(!outdir.path().join("applykit.db").exists());
+    }
+
+    #[test]
     fn jd_hash_uses_lowercase_sha256_hex() {
         assert_eq!(
             hash_jd("abc"),
