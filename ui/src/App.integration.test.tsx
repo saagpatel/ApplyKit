@@ -182,6 +182,59 @@ describe("App workflow integration", () => {
     ).toBeInTheDocument();
   });
 
+  // The dashboard's own callbacks are distinct from the header's: the header
+  // "New Job" button is a different control, so clicking it leaves these paths
+  // unexercised. Both are scoped deliberately.
+  function mockLoadedDashboard(packetDir: string) {
+    invokeSafeMock.mockImplementation(async (command) => {
+      switch (command) {
+        case "list_jobs_cmd":
+          return { jobs: [generatedJob(packetDir)] };
+        case "insights_cmd":
+          return { repliesByTrack: [], commonGaps: [], keywordCorrelations: [] };
+        case "get_settings_cmd":
+          return defaultSettings;
+        case "get_packet_detail_cmd":
+          return packetDetail(packetDir);
+        default:
+          throw new Error(`Unexpected command: ${command}`);
+      }
+    });
+  }
+
+  it("starts a new job from the dashboard hero action", async () => {
+    mockLoadedDashboard("/tmp/applykit_packets/Acme_Senior_Support_Engineer_2026-03-14");
+
+    render(<App />);
+
+    const heading = await screen.findByRole("heading", { name: "ApplyKit Dashboard" });
+    const hero = heading.closest(".hero");
+    expect(hero).not.toBeNull();
+
+    fireEvent.click(within(hero as HTMLElement).getByRole("button", { name: "New Job" }));
+
+    expect(await screen.findByPlaceholderText("Acme")).toBeInTheDocument();
+  });
+
+  it("opens a saved packet from the dashboard row action", async () => {
+    const packetDir = "/tmp/applykit_packets/Acme_Senior_Support_Engineer_2026-03-14";
+    mockLoadedDashboard(packetDir);
+
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Open packet for Acme Senior Support Engineer"
+      })
+    );
+
+    expect(await screen.findByRole("tab", { name: /tracker/i })).toBeInTheDocument();
+    // The row action must forward that row's job id, not merely open something.
+    expect(invokeSafeMock).toHaveBeenCalledWith("get_packet_detail_cmd", {
+      input: { jobId: "job-1" }
+    });
+  });
+
   it("resolves the generated job id before saving tracker updates", async () => {
     const packetDir = "/tmp/applykit_packets/Acme_Senior_Support_Engineer_2026-03-14";
     let listJobsCalls = 0;
