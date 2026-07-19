@@ -172,6 +172,14 @@ describe("App workflow integration", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
     expect(screen.queryByText("No jobs yet. Generate your first packet.")).not.toBeInTheDocument();
+
+    // The dashboard shell still renders so navigation and the accessibility
+    // contract survive a failed read, and the empty table says why it is empty
+    // instead of claiming the user has no saved jobs.
+    expect(screen.getByRole("heading", { name: "ApplyKit Dashboard" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Saved jobs are unavailable. Retry above to load them.")
+    ).toBeInTheDocument();
   });
 
   it("resolves the generated job id before saving tracker updates", async () => {
