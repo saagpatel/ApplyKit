@@ -229,18 +229,17 @@ export default function App() {
               </button>
             </div>
           )}
-          {!jobsLoadError && (
-            <Dashboard
-              jobs={jobs}
-              onNewJob={() => setView("new-job")}
-              onOpenJob={(jobId) => void openJobById(jobId)}
-              insights={{
-                repliesByTrack: insights?.repliesByTrack ?? [],
-                commonGaps: insights?.commonGaps ?? [],
-                keywordCorrelations: insights?.keywordCorrelations ?? []
-              }}
-            />
-          )}
+          <Dashboard
+            jobs={jobs}
+            jobsLoadFailed={Boolean(jobsLoadError)}
+            onNewJob={() => setView("new-job")}
+            onOpenJob={(jobId) => void openJobById(jobId)}
+            insights={{
+              repliesByTrack: insights?.repliesByTrack ?? [],
+              commonGaps: insights?.commonGaps ?? [],
+              keywordCorrelations: insights?.keywordCorrelations ?? []
+            }}
+          />
         </>
       );
     }

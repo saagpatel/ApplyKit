@@ -5,6 +5,12 @@ interface Props {
   jobs: JobSummary[];
   onNewJob: () => void;
   onOpenJob: (jobId: string) => void;
+  /**
+   * Set when the saved-jobs load failed. An empty `jobs` array then means
+   * "unknown", not "none" -- claiming the user has no jobs when we simply
+   * could not read them is a lie the table must not tell.
+   */
+  jobsLoadFailed?: boolean;
   insights?: {
     repliesByTrack: [string, number][];
     commonGaps: [string, number][];
@@ -12,7 +18,7 @@ interface Props {
   };
 }
 
-export function Dashboard({ jobs, onNewJob, onOpenJob, insights }: Props) {
+export function Dashboard({ jobs, onNewJob, onOpenJob, jobsLoadFailed, insights }: Props) {
   const [daysFilter, setDaysFilter] = useState<"all" | "7" | "30">("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -142,7 +148,11 @@ export function Dashboard({ jobs, onNewJob, onOpenJob, insights }: Props) {
             <tbody>
               {filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>No jobs yet. Generate your first packet.</td>
+                  <td colSpan={7}>
+                    {jobsLoadFailed
+                      ? "Saved jobs are unavailable. Retry above to load them."
+                      : "No jobs yet. Generate your first packet."}
+                  </td>
                 </tr>
               ) : (
                 filteredJobs.map((job) => (
