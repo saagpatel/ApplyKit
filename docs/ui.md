@@ -20,6 +20,19 @@ AppShell:
 - Recent packets list (company, role, date, track, status)
 - Search + filters (track, status, date)
 
+**When saved jobs fail to load**, the dashboard stays on screen: navigation,
+the skip link and the keyboard shell must survive a failed read, and the
+accessibility smoke test asserts the shell is present. A retryable error card
+renders above it, and the packets table distinguishes the two cases:
+
+| state | table copy |
+| --- | --- |
+| loaded, genuinely no jobs | `No jobs yet. Generate your first packet.` |
+| load failed | `Saved jobs are unavailable. Retry above to load them.` |
+
+An empty table must never claim the user has no jobs when the read failed --
+that is asserted, not just advised (`App.integration.test.tsx`).
+
 ### New Job
 Fields:
 - Company
