@@ -102,4 +102,4 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: OpenSSF Scorecard
-        uses: ossf/scorecard-action@v2.4.3
+        uses: ossf/scorecard-action@v2.4.4
