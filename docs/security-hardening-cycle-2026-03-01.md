@@ -13,12 +13,12 @@ This cycle executed remediation against previously identified risks:
 
 | Command | Source | Result |
 | --- | --- | --- |
-| `bash ./.codex/scripts/run_verify_commands.sh` | `/Users/d/Projects/ApplyKit/.codex/verify.commands` | pass |
-| `cargo audit -D warnings` | `/Users/d/Projects/ApplyKit/.codex/verify.commands` | pass |
-| `cd /tmp && cargo audit -f /Users/d/Projects/ApplyKit/Cargo.lock -D warnings --json > /tmp/applykit_security_baseline_2026-03-01.json` | `/Users/d/Projects/ApplyKit/docs/week3-checklist.md` | expected fail (`exit 1`, informational warnings enabled) |
-| `pnpm -C ui audit --audit-level high` | `/Users/d/Projects/ApplyKit/.codex/verify.commands` | pass |
+| `bash ./.codex/scripts/run_verify_commands.sh` | `~/Projects/ApplyKit/.codex/verify.commands` | pass |
+| `cargo audit -D warnings` | `~/Projects/ApplyKit/.codex/verify.commands` | pass |
+| `cd /tmp && cargo audit -f ~/Projects/ApplyKit/Cargo.lock -D warnings --json > /tmp/applykit_security_baseline_2026-03-01.json` | `~/Projects/ApplyKit/docs/week3-checklist.md` | expected fail (`exit 1`, informational warnings enabled) |
+| `pnpm -C ui audit --audit-level high` | `~/Projects/ApplyKit/.codex/verify.commands` | pass |
 | `pnpm -C ui audit --audit-level moderate` | ad-hoc hardening check | pass |
-| `node ./scripts/ci/check-ci-parity.mjs` | `/Users/d/Projects/ApplyKit/.codex/verify.commands` | pass |
+| `node ./scripts/ci/check-ci-parity.mjs` | `~/Projects/ApplyKit/.codex/verify.commands` | pass |
 
 ## Remediation Applied
 
@@ -26,9 +26,9 @@ This cycle executed remediation against previously identified risks:
 
 1. Enforced local-only LLM endpoint policy.
    - Files:
-     - `/Users/d/Projects/ApplyKit/crates/applykit_core/src/config.rs`
-     - `/Users/d/Projects/ApplyKit/crates/applykit_core/src/pipeline.rs`
-     - `/Users/d/Projects/ApplyKit/src-tauri/src/lib.rs`
+     - `~/Projects/ApplyKit/crates/applykit_core/src/config.rs`
+     - `~/Projects/ApplyKit/crates/applykit_core/src/pipeline.rs`
+     - `~/Projects/ApplyKit/src-tauri/src/lib.rs`
    - Outcome:
      - LLM base URL now rejects non-loopback hosts and userinfo.
      - Settings save path validates URL before persisting.
@@ -36,27 +36,27 @@ This cycle executed remediation against previously identified risks:
 
 2. Added deterministic LLM HTTP timeout controls.
    - File:
-     - `/Users/d/Projects/ApplyKit/crates/applykit_llm/src/lib.rs`
+     - `~/Projects/ApplyKit/crates/applykit_llm/src/lib.rs`
    - Outcome:
      - 5s connect timeout + 20s request timeout applied to adapters.
 
 3. Reduced UI dependency risk posture.
    - File:
-     - `/Users/d/Projects/ApplyKit/pnpm-workspace.yaml`
+     - `~/Projects/ApplyKit/pnpm-workspace.yaml`
    - Outcome:
      - Added workspace overrides for `rollup`, `minimatch`, and `ajv` vulnerable ranges.
      - Current audit status: no high/moderate known vulnerabilities.
 
 4. Enforced ownership map for security-critical surfaces.
    - File:
-     - `/Users/d/Projects/ApplyKit/.github/CODEOWNERS`
+     - `~/Projects/ApplyKit/.github/CODEOWNERS`
    - Outcome:
      - Security-sensitive paths now have explicit owner assignment.
 
 5. Added UI dependency-audit gate to canonical verify.
    - Files:
-     - `/Users/d/Projects/ApplyKit/.codex/verify.commands`
-     - `/Users/d/Projects/ApplyKit/scripts/ci/check-ci-parity.mjs`
+     - `~/Projects/ApplyKit/.codex/verify.commands`
+     - `~/Projects/ApplyKit/scripts/ci/check-ci-parity.mjs`
    - Outcome:
      - High-severity UI dependency advisories now block verification.
 
@@ -73,17 +73,17 @@ This cycle executed remediation against previously identified risks:
 
 - Platform security owner: `applykit-platform`
 - Control plane:
-  - `/Users/d/Projects/ApplyKit/.github/workflows/`
-  - `/Users/d/Projects/ApplyKit/.codex/`
-  - `/Users/d/Projects/ApplyKit/scripts/ci/`
+  - `~/Projects/ApplyKit/.github/workflows/`
+  - `~/Projects/ApplyKit/.codex/`
+  - `~/Projects/ApplyKit/scripts/ci/`
 - Application boundaries:
-  - `/Users/d/Projects/ApplyKit/src-tauri/`
-  - `/Users/d/Projects/ApplyKit/crates/applykit_core/`
-  - `/Users/d/Projects/ApplyKit/crates/applykit_llm/`
-  - `/Users/d/Projects/ApplyKit/ui/`
+  - `~/Projects/ApplyKit/src-tauri/`
+  - `~/Projects/ApplyKit/crates/applykit_core/`
+  - `~/Projects/ApplyKit/crates/applykit_llm/`
+  - `~/Projects/ApplyKit/ui/`
 - Security governance docs:
-  - `/Users/d/Projects/ApplyKit/docs/security-*.md`
-  - `/Users/d/Projects/ApplyKit/docs/release-*.md`
+  - `~/Projects/ApplyKit/docs/security-*.md`
+  - `~/Projects/ApplyKit/docs/release-*.md`
 
 ## Closure Decision
 

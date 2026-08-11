@@ -1,6 +1,6 @@
 [advisories]
 # Last strict-baseline validation (no local ignore config): 2026-02-28
-# Command: cd /tmp && cargo audit -f /Users/d/Projects/ApplyKit/Cargo.lock -D warnings --json
+# Command: cd /tmp && cargo audit -f ~/Projects/ApplyKit/Cargo.lock -D warnings --json
 # Result: 18 active informational advisories, 18 ignored entries, no stale ignore IDs.
 ignore = [
   # GTK3 stack advisories are currently transitive via tauri/wry Linux backend.

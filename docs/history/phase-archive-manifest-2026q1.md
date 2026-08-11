@@ -44,4 +44,4 @@ Consolidated historical map for roadmap phases completed between 2026-02-23 and 
 
 ## Current State
 - Production-roadmap phases in this sequence are complete.
-- Canonical runtime repository root is `/Users/d/Projects/ApplyKit`.
+- Canonical runtime repository root is `~/Projects/ApplyKit`.

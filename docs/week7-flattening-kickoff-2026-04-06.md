@@ -23,8 +23,8 @@ Lock scope and ownership for Phase 5 flattening readiness so Week 7/8 complete a
 
 ## Source-of-Truth Artifacts (Phase 5)
 - Existing baseline:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-prep.md`
-  - `/Users/d/Projects/ApplyKit/docs/roadmap-2026q1.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-prep.md`
+  - `~/Projects/ApplyKit/docs/roadmap-2026q1.md`
 - Week 7/8 deliverables:
   - `docs/repo-flattening-path-inventory-2026-04-07.md`
   - `docs/repo-flattening-design-2026-04-08.md`

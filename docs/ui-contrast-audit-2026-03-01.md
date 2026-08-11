@@ -1,7 +1,7 @@
 # UI Contrast Audit (2026-03-01)
 
 ## Scope
-Manual contrast review of core theme tokens and interactive states in `/Users/d/Projects/ApplyKit/ui/src/styles/global.css` for WCAG 2.2 AA conformance.
+Manual contrast review of core theme tokens and interactive states in `~/Projects/ApplyKit/ui/src/styles/global.css` for WCAG 2.2 AA conformance.
 
 ## Method
 - Evaluated representative foreground/background token pairs used by body text, muted text, buttons, danger states, and focus indicators.

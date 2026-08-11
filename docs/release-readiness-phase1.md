@@ -3,7 +3,7 @@
 **Purpose:** authoritative checklist for the Week 2 release-candidate rehearsal.
 
 ## Scope
-- Canonical implementation repo: `/Users/d/Projects/ApplyKit`
+- Canonical implementation repo: `~/Projects/ApplyKit`
 - Verification and CI orchestration run directly from root.
 - This checklist is blocking for Phase 1 completion.
 
@@ -55,7 +55,7 @@
 - Confirm `.codex/required-gates-waivers.json` stays empty unless an emergency renewal is explicitly approved.
 
 ## Rollback Notes
-- Code rollback: revert to previous green commit/tag in `/Users/d/Projects/ApplyKit`.
+- Code rollback: revert to previous green commit/tag in `~/Projects/ApplyKit`.
 - Runtime rollback: clear generated build artifacts and relaunch from prior tag.
 - Data safety:
   - packet outputs are file-based and append-only by job folder

@@ -4,7 +4,7 @@
 Authoritative release ceremony for ApplyKit release candidates and production launches.
 
 ## Preconditions
-- Canonical repo: `/Users/d/Projects/ApplyKit`
+- Canonical repo: `~/Projects/ApplyKit`
 - Required gates pass from repo root:
   - `bash ./.codex/scripts/run_verify_commands.sh`
 - Required-gate waivers are empty by default:
@@ -31,11 +31,11 @@ Compact local package receipt:
 - `git_ref`: 98b67c0c3cca4efcd3d77e92b6196d9b6ae1cc3a
 - `verify_log_path`: /tmp/applykit_week3_root_verify.log
 - `perf_artifact_path`:
-  - /Users/d/Projects/ApplyKit/.perf-baselines/bundle.json
-  - /Users/d/Projects/ApplyKit/.perf-baselines/build-time.json
+  - ~/Projects/ApplyKit/.perf-baselines/bundle.json
+  - ~/Projects/ApplyKit/.perf-baselines/build-time.json
 - `package_artifacts`:
-  - /Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app
-  - /Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg
+  - ~/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app
+  - ~/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg
 - `security_audit_result`:
   - canonical strict audit: pass (`/tmp/applykit_week3_cargo_audit.log`)
   - baseline no-ignore scan: expected fail with informational advisories (`/tmp/applykit_week3_baseline_audit.json`)
@@ -47,7 +47,7 @@ Compact local package receipt:
 
 ## Week 4 RC Rehearsal Status
 
-- Evidence source: `/Users/d/Projects/ApplyKit/docs/release-rehearsal-2026-02-22.md`
+- Evidence source: `~/Projects/ApplyKit/docs/release-rehearsal-2026-02-22.md`
 - Status: complete (prepared early)
 - Outcome:
   - root delegated verification: pass
@@ -68,10 +68,10 @@ Compact local package receipt:
   - pass (/tmp/applykit_phase4_week5_day3_ci_parity.log)
 - `perf_artifact_path`:
   - /tmp/applykit_phase4_week5_day4_perf_enforced.log
-  - /Users/d/Projects/ApplyKit/.perf-results/summary.json
+  - ~/Projects/ApplyKit/.perf-results/summary.json
 - `package_artifacts`:
-  - /Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app
-  - /Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg
+  - ~/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app
+  - ~/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg
 - `security_audit_result`:
   - canonical strict audit: pass (/tmp/applykit_phase4_week5_day3_cargo_audit.log, /tmp/applykit_phase4_week5_day5_cargo_audit.log)
   - baseline no-ignore scan: expected fail (/tmp/applykit_phase4_week5_day5_baseline_audit.log)
@@ -89,13 +89,13 @@ Compact local package receipt:
 - `parity_check_result`: pass (/tmp/applykit_phase4_week6_day1_ci_parity.log)
 - `waiver_policy_result`: pass (/tmp/applykit_phase4_week6_day1_gate_waivers.log)
 - `package_artifacts`:
-  - /Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app
-  - /Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg
+  - ~/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app
+  - ~/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg
 - `artifact_checksums`:
   - app binary (`Contents/MacOS/applykit_tauri`): `0c208a49edff7ff05130f8e8cc3e75eacd7be55615b41cdb847377d054749d76`
   - dmg: `7809747cdf81ec9169f013f8d90d9d0824e53dd92766c51a90fc3381063c3d36`
 - `post_launch_verification_artifact`:
-  - /Users/d/Projects/ApplyKit/docs/week6-post-launch-verification-2026-04-02.md
+  - ~/Projects/ApplyKit/docs/week6-post-launch-verification-2026-04-02.md
 - `decision`:
   - go (Phase 4 complete; proceed to Phase 5 prep)
 

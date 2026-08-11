@@ -8,7 +8,7 @@ This report captures the Week 3 security-debt baseline and triage work executed 
 
 1. Baseline advisory scan (no local ignore config):
    - Command:
-     - `cd /tmp && cargo audit -f /Users/d/Projects/ApplyKit/Cargo.lock -D warnings --json > /tmp/applykit_week3_baseline_audit.json`
+     - `cd /tmp && cargo audit -f ~/Projects/ApplyKit/Cargo.lock -D warnings --json > /tmp/applykit_week3_baseline_audit.json`
    - Exit: `1` (expected due informational advisories with no local ignore config)
    - Output artifact: `/tmp/applykit_week3_baseline_audit.json`
 
@@ -20,14 +20,14 @@ This report captures the Week 3 security-debt baseline and triage work executed 
 
 3. CI parity guard:
    - Command:
-     - `node /Users/d/Projects/ApplyKit/scripts/ci/check-ci-parity.mjs`
+     - `node ~/Projects/ApplyKit/scripts/ci/check-ci-parity.mjs`
    - Exit: `0`
    - Output artifact: `/tmp/applykit_week3_ci_parity.log`
 
 ## Advisory Set Comparison
 
 - Active advisory IDs from baseline scan: 18
-- Ignore IDs in `/Users/d/Projects/ApplyKit/.cargo/audit.toml`: 18
+- Ignore IDs in `~/Projects/ApplyKit/.cargo/audit.toml`: 18
 - Stale ignore IDs: none
 - Missing ignore IDs for active advisories: none
 
@@ -46,4 +46,4 @@ This report captures the Week 3 security-debt baseline and triage work executed 
 - `remove now`: none
 - `blocked`: all 18 advisory IDs (upstream/transitive chain constraints)
 - Tracking location:
-  - `/Users/d/Projects/ApplyKit/docs/security-advisory-tracking.md`
+  - `~/Projects/ApplyKit/docs/security-advisory-tracking.md`

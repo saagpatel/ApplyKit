@@ -1,7 +1,7 @@
 # Repo Flattening Post-Cutover Stabilization (2026-02-22)
 
 ## Summary
-Flattening cutover was executed in `/Users/d/Projects/ApplyKit` and the repo now operates as a single-root product repository.
+Flattening cutover was executed in `~/Projects/ApplyKit` and the repo now operates as a single-root product repository.
 
 ## Cutover Actions Executed
 1. Created rollback branch at pre-cutover state:

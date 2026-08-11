@@ -4,7 +4,7 @@
 - `operator`: codex-session
 - `date_utc`: 2026-02-28T22:20:00Z
 - `git_ref`: 4b7e653567ab9a64b845dfa024f0a8da4948785a
-- `repository`: `/Users/d/Projects/ApplyKit`
+- `repository`: `~/Projects/ApplyKit`
 
 ## Command Evidence Summary
 
