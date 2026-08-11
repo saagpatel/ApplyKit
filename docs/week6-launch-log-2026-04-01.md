@@ -19,8 +19,8 @@ Prepared on **2026-02-22** for the Week 6 launch window (**2026-04-01** target).
 - Build command log:
   - `/tmp/applykit_phase4_week6_day2_tauri_build.log`
 - Artifacts:
-  - `/Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app`
-  - `/Users/d/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg`
+  - `~/Library/Caches/Codex/build/rust/applykit/debug/bundle/macos/ApplyKit.app`
+  - `~/Library/Caches/Codex/build/rust/applykit/debug/bundle/dmg/ApplyKit_0.1.0_aarch64.dmg`
 - Checksums:
   - App binary (`Contents/MacOS/applykit_tauri`):
     - `0c208a49edff7ff05130f8e8cc3e75eacd7be55615b41cdb847377d054749d76`

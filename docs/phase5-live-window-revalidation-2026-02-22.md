@@ -2,7 +2,7 @@
 
 ## Archival Note
 This document captures **pre-cutover** evidence for the wrapper+nested topology.  
-Use `/Users/d/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md` for live runtime contracts after flattening.
+Use `~/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md` for live runtime contracts after flattening.
 
 ## Purpose
 Revalidate Phase 5 readiness artifacts against current repository state before flattening execution handoff.
@@ -16,15 +16,15 @@ Revalidate Phase 5 readiness artifacts against current repository state before f
 ## Command Evidence (Live Window)
 | Command | Source of Truth | Result | Evidence |
 | --- | --- | --- | --- |
-| `bash /Users/d/Projects/ApplyKit/.codex/scripts/run_verify_commands.sh` | `/Users/d/Projects/ApplyKit/.codex/verify.commands` | pass | `/tmp/applykit_phase5_live_root_verify.log` |
-| `node /Users/d/Projects/ApplyKit/scripts/ci/check-ci-parity.mjs` | `/Users/d/Projects/ApplyKit/.codex/verify.commands`, `/Users/d/Projects/ApplyKit/.github/workflows/quality-gates.yml` | pass | `/tmp/applykit_phase5_live_ci_parity.log` |
-| `bash /Users/d/Projects/ApplyKit/applykit_pack/.codex/scripts/run_verify_commands.sh` (legacy pre-cutover path) | `/Users/d/Projects/ApplyKit/applykit_pack/.codex/verify.commands` (legacy pre-cutover contract) | pass | `/tmp/applykit_phase5_live_product_verify.log` |
-| `bash /Users/d/Projects/ApplyKit/applykit_pack/.codex/scripts/run_perf_enforced.sh` (legacy pre-cutover path) | `/Users/d/Projects/ApplyKit/applykit_pack/.codex/commands.md` (legacy pre-cutover contract) | pass | `/tmp/applykit_phase5_live_perf_enforced.log` |
-| `cargo audit -D warnings` (from legacy pre-cutover `applykit_pack` root) | `/Users/d/Projects/ApplyKit/applykit_pack/.codex/verify.commands` (legacy pre-cutover contract) | pass | `/tmp/applykit_phase5_live_cargo_audit.log` |
+| `bash ~/Projects/ApplyKit/.codex/scripts/run_verify_commands.sh` | `~/Projects/ApplyKit/.codex/verify.commands` | pass | `/tmp/applykit_phase5_live_root_verify.log` |
+| `node ~/Projects/ApplyKit/scripts/ci/check-ci-parity.mjs` | `~/Projects/ApplyKit/.codex/verify.commands`, `~/Projects/ApplyKit/.github/workflows/quality-gates.yml` | pass | `/tmp/applykit_phase5_live_ci_parity.log` |
+| `bash ~/Projects/ApplyKit/applykit_pack/.codex/scripts/run_verify_commands.sh` (legacy pre-cutover path) | `~/Projects/ApplyKit/applykit_pack/.codex/verify.commands` (legacy pre-cutover contract) | pass | `/tmp/applykit_phase5_live_product_verify.log` |
+| `bash ~/Projects/ApplyKit/applykit_pack/.codex/scripts/run_perf_enforced.sh` (legacy pre-cutover path) | `~/Projects/ApplyKit/applykit_pack/.codex/commands.md` (legacy pre-cutover contract) | pass | `/tmp/applykit_phase5_live_perf_enforced.log` |
+| `cargo audit -D warnings` (from legacy pre-cutover `applykit_pack` root) | `~/Projects/ApplyKit/applykit_pack/.codex/verify.commands` (legacy pre-cutover contract) | pass | `/tmp/applykit_phase5_live_cargo_audit.log` |
 
 ## Path Inventory Revalidation
 Command:
-- `rg -n --hidden "applykit_pack/|applykit_pack\\b" /Users/d/Projects/ApplyKit -g '!**/target/**' -g '!**/node_modules/**' -g '!**/.git/**' -g '!**/coverage/**' -g '!**/.perf-results/**' -g '!**/dist/**'`
+- `rg -n --hidden "applykit_pack/|applykit_pack\\b" ~/Projects/ApplyKit -g '!**/target/**' -g '!**/node_modules/**' -g '!**/.git/**' -g '!**/coverage/**' -g '!**/.perf-results/**' -g '!**/dist/**'`
 
 Evidence:
 - `/tmp/applykit_phase5_live_path_inventory_control.log`

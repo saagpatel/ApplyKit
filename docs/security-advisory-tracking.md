@@ -1,6 +1,6 @@
 # Security Advisory Tracking
 
-Source of truth for active `cargo audit` ignore entries in `/Users/d/Projects/ApplyKit/.cargo/audit.toml`.
+Source of truth for active `cargo audit` ignore entries in `~/Projects/ApplyKit/.cargo/audit.toml`.
 
 ## Current Advisory Matrix (2026-04-12)
 
@@ -22,7 +22,7 @@ Source of truth for active `cargo audit` ignore entries in `/Users/d/Projects/Ap
   - `cargo audit -D warnings`
   - Result: pass after adding `RUSTSEC-2026-0097` to the tracked ignore list.
 - Baseline no-ignore scan:
-  - `cd /tmp && cargo audit -f /Users/d/Projects/ApplyKit/Cargo.lock -D warnings`
+  - `cd /tmp && cargo audit -f ~/Projects/ApplyKit/Cargo.lock -D warnings`
   - Result: expected non-zero with `RUSTSEC-2026-0097` still active through transitive `reqwest/proptest` and `tauri-utils`/`wry` dependency chains.
 - Compatible upgrade checks executed in this cycle:
   - `cargo update -p tauri -p tauri-build -p tauri-utils`
@@ -69,7 +69,7 @@ All dry-runs reported no compatible lockfile upgrades that remove the active adv
   - `cargo update -w`
 - Result:
   - active advisory IDs in warnings: 18
-  - stale ignore IDs in `/Users/d/Projects/ApplyKit/.cargo/audit.toml`: none
+  - stale ignore IDs in `~/Projects/ApplyKit/.cargo/audit.toml`: none
   - compatible lockfile upgrades available to remove advisories: none
 
 ## Week 3 Conclusion
@@ -132,7 +132,7 @@ Current posture:
 ## 2026-03-01 Hardening Cycle Revalidation
 
 - Baseline command (no local ignore config):
-  - `cd /tmp && cargo audit -f /Users/d/Projects/ApplyKit/Cargo.lock -D warnings --json > /tmp/applykit_security_baseline_2026-03-01.json`
+  - `cd /tmp && cargo audit -f ~/Projects/ApplyKit/Cargo.lock -D warnings --json > /tmp/applykit_security_baseline_2026-03-01.json`
   - Result: expected non-zero (`exit 1`) with informational warnings enabled.
 - Canonical strict audit:
   - `cargo audit -D warnings`

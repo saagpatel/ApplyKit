@@ -48,7 +48,7 @@ Prepared on **2026-02-22** for Week 8 Day 1 (**2026-04-13**).
 Status: complete.
 
 Evidence:
-- `/Users/d/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`
+- `~/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`
 - `/tmp/applykit_phase5_cutover/precutover_head_sha.txt`
 - `/tmp/applykit_phase5_cutover/rollback_branch_status.log`
 - `/tmp/applykit_phase5_cutover/precutover_branch_protection.json`

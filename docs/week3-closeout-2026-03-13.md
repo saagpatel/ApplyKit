@@ -17,18 +17,18 @@ Result: no stale entries found (`18 active`, `18 ignored`, `0 stale`).
 2. Fully justify remaining advisory ignores  
 Status: complete  
 Result: each advisory group now includes `status`, `last_validated_on`, `removal_blocker`, and `next_review_date` in:
-- `/Users/d/Projects/ApplyKit/docs/security-advisory-tracking.md`
+- `~/Projects/ApplyKit/docs/security-advisory-tracking.md`
 
 3. Capture auditable release evidence  
 Status: complete  
 Result: Week 3 evidence added to:
-- `/Users/d/Projects/ApplyKit/docs/release-runbook.md`
-- `/Users/d/Projects/ApplyKit/docs/release-rehearsal-2026-02-22.md`
+- `~/Projects/ApplyKit/docs/release-runbook.md`
+- `~/Projects/ApplyKit/docs/release-rehearsal-2026-02-22.md`
 
 4. Finish with green canonical verification  
 Status: complete  
 Result: full delegated verify passed:
-- `bash /Users/d/Projects/ApplyKit/.codex/scripts/run_verify_commands.sh`
+- `bash ~/Projects/ApplyKit/.codex/scripts/run_verify_commands.sh`
 - log: `/tmp/applykit_week3_root_verify.log`
 
 ## Residual Risk Register

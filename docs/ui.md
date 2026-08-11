@@ -71,10 +71,10 @@ Packet preview:
 - Responsive target: desktop-first with laptop/tablet fallback.
 
 ## UI verification commands
-- `pnpm -C /Users/d/Projects/ApplyKit/ui lint`
-- `pnpm -C /Users/d/Projects/ApplyKit/ui test`
-- `pnpm -C /Users/d/Projects/ApplyKit/ui test:a11y`
-- `pnpm -C /Users/d/Projects/ApplyKit/ui test:e2e:a11y`
-- `pnpm -C /Users/d/Projects/ApplyKit/ui test:responsive`
-- `pnpm -C /Users/d/Projects/ApplyKit/ui test:coverage`
-- `pnpm -C /Users/d/Projects/ApplyKit/ui build`
+- `pnpm -C ~/Projects/ApplyKit/ui lint`
+- `pnpm -C ~/Projects/ApplyKit/ui test`
+- `pnpm -C ~/Projects/ApplyKit/ui test:a11y`
+- `pnpm -C ~/Projects/ApplyKit/ui test:e2e:a11y`
+- `pnpm -C ~/Projects/ApplyKit/ui test:responsive`
+- `pnpm -C ~/Projects/ApplyKit/ui test:coverage`
+- `pnpm -C ~/Projects/ApplyKit/ui build`

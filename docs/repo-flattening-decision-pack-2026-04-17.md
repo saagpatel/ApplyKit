@@ -9,22 +9,22 @@ Prepared on **2026-02-22** for Week 8 Day 5 (**2026-04-17**).
 
 ## Evidence Index
 - Path inventory:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-path-inventory-2026-04-07.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-path-inventory-2026-04-07.md`
 - Design spec:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-design-2026-04-08.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-design-2026-04-08.md`
 - Gate/parity rewrite spec:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-gate-parity-spec-2026-04-09.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-gate-parity-spec-2026-04-09.md`
 - Branch protection plan:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-branch-protection-plan-2026-04-10.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-branch-protection-plan-2026-04-10.md`
 - Dry-runs:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-dry-run-1-2026-04-11.md`
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-dry-run-2-2026-04-15.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-dry-run-1-2026-04-11.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-dry-run-2-2026-04-15.md`
 
 ## Execution Evidence (2026-02-22)
 - Pre-cutover revalidation:
-  - `/Users/d/Projects/ApplyKit/docs/phase5-live-window-revalidation-2026-02-22.md`
+  - `~/Projects/ApplyKit/docs/phase5-live-window-revalidation-2026-02-22.md`
 - Post-cutover stabilization:
-  - `/Users/d/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`
+  - `~/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`
 - Rollback branch and governance snapshots:
   - `/tmp/applykit_phase5_cutover/precutover_head_sha.txt`
   - `/tmp/applykit_phase5_cutover/rollback_branch_status.log`

@@ -25,7 +25,7 @@ Prepared on **2026-02-22** for Week 8 closeout (**2026-04-19**).
 
 ## Live-Window Revalidation (2026-02-22)
 Execution and governance checks were rerun in the live window and recorded in:
-- `/Users/d/Projects/ApplyKit/docs/phase5-live-window-revalidation-2026-02-22.md`
+- `~/Projects/ApplyKit/docs/phase5-live-window-revalidation-2026-02-22.md`
 
 Live revalidation outcomes:
 1. Pre-cutover required gate chain passed.
@@ -36,4 +36,4 @@ Live revalidation outcomes:
 
 Updated status:
 - Phase 5: **complete (executed)**
-- Execution evidence: `/Users/d/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`
+- Execution evidence: `~/Projects/ApplyKit/docs/repo-flattening-post-cutover-stabilization-2026-02-22.md`

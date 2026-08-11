@@ -6,11 +6,11 @@ Prepared on **2026-02-22** for Week 7 Day 3 (**2026-04-08**).
 Move from wrapper + nested product layout to single-root product layout while keeping current governance controls.
 
 ## Current Layout
-- Wrapper root: `/Users/d/Projects/ApplyKit`
-- Product root: `/Users/d/Projects/ApplyKit`
+- Wrapper root: `~/Projects/ApplyKit`
+- Product root: `~/Projects/ApplyKit`
 
 ## Target Flattened Layout
-- New single root: `/Users/d/Projects/ApplyKit` (product content at top level)
+- New single root: `~/Projects/ApplyKit` (product content at top level)
 - Primary top-level directories after cutover:
   - `.codex/`
   - `.github/`
