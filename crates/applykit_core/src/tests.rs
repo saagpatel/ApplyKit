@@ -425,6 +425,40 @@ mod suite {
         assert_eq!(recovery_dirs, 1);
     }
 
+    #[test]
+    fn a_fresh_signing_key_is_seeded_from_randomness() {
+        use crate::signing::{PacketSigner, KEY_FILENAME};
+
+        let a = tempfile::tempdir().expect("tmpdir");
+        let b = tempfile::tempdir().expect("tmpdir");
+        let first = PacketSigner::load_or_create(a.path()).expect("create");
+        let second = PacketSigner::load_or_create(b.path()).expect("create");
+        assert_ne!(
+            first.public_key_hex(),
+            second.public_key_hex(),
+            "independent config dirs must not share a signing key"
+        );
+
+        let seed = std::fs::read_to_string(a.path().join(KEY_FILENAME)).expect("read key");
+        assert_eq!(seed.len(), 64, "32-byte seed stored as hex");
+        assert_ne!(seed, "0".repeat(64), "seed must not be left unfilled");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_generated_signing_key_is_readable_only_by_its_owner() {
+        use crate::signing::{PacketSigner, KEY_FILENAME};
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir().expect("tmpdir");
+        PacketSigner::load_or_create(dir.path()).expect("create");
+        let mode = std::fs::metadata(dir.path().join(KEY_FILENAME))
+            .expect("key metadata")
+            .permissions()
+            .mode();
+        assert_eq!(mode & 0o777, 0o600, "signing key must not be group/world readable");
+    }
+
     #[cfg(unix)]
     #[test]
     fn unreadable_signing_key_blocks_generation_without_a_visible_packet() {
