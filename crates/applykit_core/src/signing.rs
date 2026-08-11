@@ -239,4 +239,35 @@ mod tests {
         let second = PacketSigner::load_or_create(dir.path()).expect("load");
         assert_eq!(pubkey, second.public_key_hex(), "persisted key must be stable");
     }
+
+    #[test]
+    fn load_or_create_seeds_a_fresh_key_from_randomness() {
+        let a = tempfile::tempdir().expect("tmp");
+        let b = tempfile::tempdir().expect("tmp");
+        let first = PacketSigner::load_or_create(a.path()).expect("create");
+        let second = PacketSigner::load_or_create(b.path()).expect("create");
+        assert_ne!(
+            first.public_key_hex(),
+            second.public_key_hex(),
+            "independent config dirs must not share a signing key"
+        );
+
+        let seed = std::fs::read_to_string(a.path().join(KEY_FILENAME)).expect("read key");
+        assert_eq!(seed.len(), 64, "32-byte seed stored as hex");
+        assert_ne!(seed, "0".repeat(64), "seed must not be left unfilled");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_generated_key_is_readable_only_by_its_owner() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir().expect("tmp");
+        PacketSigner::load_or_create(dir.path()).expect("create");
+        let mode = std::fs::metadata(dir.path().join(KEY_FILENAME))
+            .expect("metadata")
+            .permissions()
+            .mode();
+        assert_eq!(mode & 0o777, 0o600, "signing key must not be group/world readable");
+    }
 }
