@@ -64,7 +64,7 @@ impl PacketSigner {
                 .map_err(|_| anyhow!("signing key {} must be 32 bytes", path.display()))?
         } else {
             let mut seed = [0u8; 32];
-            getrandom::getrandom(&mut seed).map_err(|e| anyhow!("generating signing key: {e}"))?;
+            getrandom::fill(&mut seed).map_err(|e| anyhow!("generating signing key: {e}"))?;
             std::fs::write(&path, to_hex(&seed))
                 .with_context(|| format!("writing signing key {}", path.display()))?;
             #[cfg(unix)]
