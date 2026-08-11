@@ -15,6 +15,8 @@ Source of truth for active `cargo audit` ignore entries in `/Users/d/Projects/Ap
 ## 2026-08-11 Dependency Hygiene Note
 
 - `getrandom` was moved from `0.2` to `0.4`. The crate removed the top-level `getrandom()` function in `0.3`; the equivalent is `fill()`, and `PacketSigner::load_or_create` is the only call site. Signing-key seeding is now covered by regression tests asserting that independent config directories receive distinct keys and that the persisted seed is never left unfilled, so a silently non-filling replacement fails the suite rather than producing an all-zero key.
+- Eleven npm advisories across `postcss`, `nanoid`, `undici`, and `brace-expansion` were cleared by pnpm overrides. All four are transitive (`vite -> postcss -> nanoid`, `jsdom -> undici`, `eslint -> minimatch -> brace-expansion`), so no direct dependency could be bumped to fix them.
+- The `postcss` entry is the reason this recurred. It was added on 2026-07-04 as the exact pin `"postcss": 8.5.10` to patch that day's advisory, and an exact pin cannot absorb the next one: it held `postcss` at a version that became vulnerable while `vite` already asked for `^8.5.16`. Overrides in this repo should therefore be written as ranged floors (`"pkg@<fixed": fixed`), which rewrite only genuinely vulnerable versions and let the ecosystem move. Ranges are scoped to the affected major so an override never silently crosses a breaking boundary.
 
 ## 2026-07-04 Dependency Hygiene Note
 
