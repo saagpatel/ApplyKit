@@ -7,4 +7,10 @@ on:
 
 jobs:
   enforce:
+    # Same cause as git-hygiene: the called workflow requests pull-requests,
+    # which this repo's default "read" token does not grant, so the run was
+    # rejected before any job existed.
+    permissions:
+      contents: read
+      pull-requests: read
     uses: saagpatel/sovereign/.github/workflows/lockfile-rationale.yml@f27de0d13192c0ae42e94cdec85b8c224971bc8a
