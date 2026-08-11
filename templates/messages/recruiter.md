@@ -16,4 +16,4 @@ Relevant highlights:
 If it’s helpful, I can share a tailored 1-page resume. {{cta}}
 
 Thanks,  
-Saagar
+Alex

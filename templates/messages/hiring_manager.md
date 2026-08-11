@@ -16,4 +16,4 @@ What I’d bring to your team:
 If you’re open to it, I’d love to compare notes on {{problem_1}} / {{problem_2}} and how you’re measuring success in the role. {{cta}}
 
 Best,  
-Saagar
+Alex
