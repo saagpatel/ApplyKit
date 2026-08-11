@@ -8,4 +8,4 @@ on:
 
 jobs:
   git-hygiene:
-    uses: saagpatel/sovereign/.github/workflows/git-hygiene.yml@331b472c4ccebba09cf3f169e5fc6dca900ea571
+    uses: saagpatel/sovereign/.github/workflows/git-hygiene.yml@345c412bfc011f4ec602eadc42fd420dec62e85e
