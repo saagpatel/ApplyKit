@@ -4,7 +4,8 @@
 
 ## Setup and safe checks
 
-Run all commands from the repository root. Use Rust stable, Node.js 22+ and
+Run all commands from the repository root. Use Rust stable, Node.js 22.x at
+22.22.2 or later (the locked jsdom minimum for the CI Node 22 lane), and
 pnpm 10.20.0 (the `packageManager` in `package.json`). Install workspace
 dependencies with `pnpm install --frozen-lockfile`; preserve `Cargo.lock` and
 `pnpm-lock.yaml`. The CLI fixtures do not need Ollama. The desktop workspace

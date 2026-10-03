@@ -19,7 +19,7 @@ ApplyKit generates deterministic, truth-gated application packets from job descr
 
 ### Prerequisites
 - Rust stable toolchain
-- Node.js 22+ and pnpm
+- Node.js 22.x at 22.22.2 or later and pnpm 10.20.0 (the locked UI dependencies require this Node 22 patch level).
 - Tauri CLI for desktop builds:
   ```bash
   cargo install tauri-cli --version "^2.0" --locked
