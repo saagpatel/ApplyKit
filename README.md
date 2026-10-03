@@ -2,14 +2,14 @@
 
 [![Rust](https://img.shields.io/badge/rust-%23dea584?style=flat-square&logo=rust)](#) [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#)
 
-> Paste a job description, get a complete application packet — no hallucinated claims, no cloud uploads.
+> Paste a job description, get a truth-gated application packet — no cloud uploads.
 
-ApplyKit generates deterministic, truth-gated application packets from job descriptions. A truth gate ensures every generated claim traces back to your approved local resume templates and skill banks — no fabrication. The same JD + same config always produces the same output. Runs entirely locally via Ollama.
+ApplyKit generates truth-gated application packets from job descriptions. The truth gate checks approved bullet provenance, known tools, and prohibited claim patterns; it does not validate every claim semantically. Rule-based tailoring is deterministic with fixed inputs, local templates/banks, config, and run date; optional LLM rewrites and manifest timestamps can vary. Runs entirely locally with optional Ollama or OpenAI-compatible local adapters.
 
 ## Features
 
-- **Truth Gate** — generated claims come only from approved local templates and skill banks
-- **Deterministic output** — same input + same config = same packet every time
+- **Truth Gate** — checks approved bullet provenance, known tools, and prohibited claim patterns
+- **Deterministic tailoring** — fixed inputs, templates/banks, config, and run date with LLM disabled; manifest timestamps still vary
 - **Full application packet** — tailored resume(s), cover letter, fit score, tailor plan, diff, and tracker CSV
 - **Local LLM** — Ollama, LM Studio, or any llama.cpp-compatible provider
 - **CLI + desktop** — `applykit generate` CLI for scripting; Tauri desktop UI for interactive use
@@ -24,7 +24,7 @@ ApplyKit generates deterministic, truth-gated application packets from job descr
   ```bash
   cargo install tauri-cli --version "^2.0" --locked
   ```
-- [Ollama](https://ollama.com) for local LLM adapter workflows. The deterministic CLI quick start below does not require Ollama.
+- [Ollama](https://ollama.com) for local LLM adapter workflows. The CLI quick start below does not require Ollama; unavailable LLM requests fall back to rule-based generation.
 
 ### Installation
 ```bash

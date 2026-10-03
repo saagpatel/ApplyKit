@@ -14,7 +14,7 @@ Model target: GPT-5.3-Codex High Reasoning
 - Business logic only in crates/applykit_core
 - src-tauri RPC only
 - UI is render/orchestration only
-- Truth Gate prevents invented claims
+- Truth Gate checks approved bullet provenance, known tools, and prohibited claim patterns
 - Deterministic outputs required (fixtures + snapshots)
 
 ## Gates
@@ -32,7 +32,7 @@ Model target: GPT-5.3-Codex High Reasoning
 
 ## What This Project Is
 
-deterministic local-first application packet generation
+local-first application packet generation with deterministic rule-based tailoring
 
 ## Current State
 
