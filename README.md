@@ -66,3 +66,8 @@ cargo tauri build
 ## License
 
 MIT
+
+## Verification
+
+See [Testing & Verification](docs/testing.md) for prerequisites, focused and
+broader checks, fixture safety, and conditional browser/native verification.
