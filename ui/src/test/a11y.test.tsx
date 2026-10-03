@@ -1,6 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
+
+// Vitest 5 reads custom matcher types from its own Matchers interface.
+declare module "vitest" {
+  interface Matchers<R, T> {
+    toHaveNoViolations: jest.Matchers<R, T>["toHaveNoViolations"];
+  }
+}
 import { CommandPalette } from "../components/CommandPalette";
 import { Dashboard } from "../screens/Dashboard";
 import { JobReview } from "../screens/JobReview";
