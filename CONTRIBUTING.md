@@ -30,3 +30,8 @@ See the README for installation and setup instructions.
 ## Questions?
 
 Open an issue or start a discussion. Response time is typically within a few days.
+
+## Verification
+
+Use [Testing & Verification](docs/testing.md) to select focused checks and the
+full gates for your change; record any skipped or unavailable checks in the PR.
