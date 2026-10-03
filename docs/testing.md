@@ -42,8 +42,9 @@ For UI changes, run `pnpm -C ui exec playwright install chromium`, then
 `CI=1 pnpm -C ui test:e2e:a11y`. The Playwright configuration builds the frontend
 and starts its own loopback preview on port 4174; keep that port free. Also
 review generate/preview/open-folder behavior in the desktop app using synthetic
-fixtures when the native RPC or packet-preview contract changes. Browser tests
-use mocked native APIs and do not prove the Tauri integration. Pure docs-only
+fixtures when the native RPC or packet-preview contract changes. UI integration
+tests use mocked native APIs; the Playwright smoke runs without a native runtime.
+Neither proves the Tauri integration. Pure docs-only
 changes do not need a browser or a running provider.
 
 The full CI gate list is [`.codex/verify.commands`](../.codex/verify.commands),
