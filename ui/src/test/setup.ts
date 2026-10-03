@@ -21,3 +21,12 @@ if (!("ResizeObserver" in globalThis)) {
 if (!HTMLElement.prototype.scrollIntoView) {
   HTMLElement.prototype.scrollIntoView = () => {};
 }
+
+// jsdom has no native modal lifecycle; browser tests verify focus trapping/inertness.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  HTMLDialogElement.prototype.close = function () {
+    this.open = false;
+    queueMicrotask(() => this.dispatchEvent(new Event("close")));
+  };
+}
