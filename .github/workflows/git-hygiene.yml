@@ -6,6 +6,9 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   git-hygiene:
     # A called workflow cannot hold more permission than its caller grants.
